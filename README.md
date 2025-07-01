@@ -95,6 +95,10 @@ Si prefieres utilizar **Docker** directamente (por ejemplo en EasyPanel) sin
 docker build -t kepler .
 ```
 
+El Dockerfile utiliza una imagen oficial de **Gradle** para compilar el
+servidor sin necesidad de descargar ficheros adicionales desde GitHub, lo que
+facilita el despliegue en entornos con restricciones de red como EasyPanel.
+
 Inicia un contenedor de MariaDB (puedes hacerlo también desde EasyPanel):
 
 ```shell

@@ -14,22 +14,25 @@ WORKDIR /kepler
 # BUILD STAGE #
 ###############
 
-FROM base AS build
+FROM gradle:7.6-jdk17-alpine AS build
 
-# Add unzip
-RUN apk add --no-cache unzip=6.0-r14
+# Working directory for gradle image is /home/gradle by default
+WORKDIR /kepler
+
+# Install unzip utility
+RUN apk add --no-cache unzip
 
 # Copy every files/folders that are not in .dockerignore
 COPY . .
 
 # Convert CRLF to LF executable files (failing build for Windows without this)
-RUN sed -i 's/\r$//' gradlew tools/scripts/run.sh
+RUN sed -i 's/\r$//' tools/scripts/run.sh
 
-# Make gradlew and run.sh executable
-RUN chmod +x gradlew tools/scripts/run.sh
+# Make run.sh executable
+RUN chmod +x tools/scripts/run.sh
 
 # Run gradle build
-RUN ./gradlew distZip
+RUN gradle distZip --no-daemon
 
 # Unzip builded Kepler server
 RUN unzip -qq ./Kepler-Server/build/distributions/Kepler-Server.zip -d ./release
