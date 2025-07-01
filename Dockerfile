@@ -5,7 +5,7 @@
 FROM alpine:3.20 AS base
 
 # Add OpenJDK17
-RUN apk add --no-cache openjdk17=17.0.12_p7-r0
+RUN apk add --no-cache openjdk17
 
 # Uses /kepler directory
 WORKDIR /kepler
@@ -51,3 +51,4 @@ FROM base AS production
 COPY --from=build /kepler/build ./
 
 CMD [ "sh", "run.sh" ]
+
