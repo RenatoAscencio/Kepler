@@ -86,19 +86,59 @@ _Don't change `MYSQL_HOST` except if you change the name of the service `mariadb
 
 _You neither should change `MYSQL_PORT`._
 
-### 3. Start Kepler
+### 3. Inicio de Kepler
 
-You just need to run Docker compose inside of Kepler directory :
-
-```shell
-docker compose up -d
-```
-
-To stop Kepler :
+Si prefieres utilizar **Docker** directamente (por ejemplo en EasyPanel) sin
+`docker compose`, primero construye la imagen:
 
 ```shell
-docker compose down
+docker build -t kepler .
 ```
+
+El Dockerfile utiliza una imagen oficial de **Gradle** para compilar el
+servidor sin necesidad de descargar ficheros adicionales desde GitHub, lo que
+facilita el despliegue en entornos con restricciones de red como EasyPanel.
+
+Inicia un contenedor de MariaDB (puedes hacerlo también desde EasyPanel):
+
+```shell
+docker run -d --name kepler-db \
+  -e MARIADB_ROOT_PASSWORD=veryverysecret \
+  -e MYSQL_DATABASE=kepler \
+  -e MYSQL_USER=kepler \
+  -e MYSQL_PASSWORD=verysecret \
+  mariadb:11.4
+```
+
+Por último arranca Kepler enlazándolo con la base de datos y exponiendo los
+puertos necesarios:
+
+```shell
+docker run -d --name kepler --link kepler-db:mariadb \
+  -p 12321:12321 -p 12309:12309 -p 12322:12322 \
+  -e MYSQL_HOSTNAME=mariadb \
+  kepler
+```
+
+Con EasyPanel puedes crear estos contenedores desde su interfaz gráfica y
+configurar las variables de entorno anteriores. Para simplificar aún más el
+proceso, este repositorio incluye un script `deploy.sh` que ejecuta todos los
+pasos anteriores de forma automática:
+
+```shell
+./deploy.sh
+```
+
+El script construye la imagen, inicia MariaDB si no existe, importa
+automáticamente `tools/kepler.sql` la primera vez y arranca Kepler ligado a
+dicha base de datos.
+
+Cuando subes este repositorio a **EasyPanel** y seleccionas la opción
+"Dockerfile", la imagen resultante utilizará el script `start.sh` para poner en
+marcha el servidor. Al arrancar el contenedor verás en los logs un mensaje con
+la URL de acceso. Por defecto podrás conectarte a
+`http://TU_IP_o_DOMINIO:12321` a menos que hayas modificado el puerto con la
+variable `SERVER_PORT`.
 
 ### Docker FAQ
 
