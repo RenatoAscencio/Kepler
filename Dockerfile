@@ -50,5 +50,14 @@ FROM base AS production
 # Copy builded Kepler server
 COPY --from=build /kepler/build ./
 
-CMD [ "sh", "run.sh" ]
+# Default ports (can be overridden by environment variables)
+ENV SERVER_PORT=12321 \
+    RCON_PORT=12309 \
+    MUS_PORT=12322
+
+# Expose ports for the emulator, RCON and MUS servers
+EXPOSE ${SERVER_PORT} ${RCON_PORT} ${MUS_PORT}
+
+COPY start.sh ./
+ENTRYPOINT ["sh", "start.sh"]
 
