@@ -95,6 +95,31 @@ Si prefieres utilizar **Docker** directamente (por ejemplo en EasyPanel) sin
 docker build -t kepler .
 ```
 
+El Dockerfile utiliza una imagen oficial de **Gradle** para compilar el
+servidor sin necesidad de descargar ficheros adicionales desde GitHub, lo que
+facilita el despliegue en entornos con restricciones de red como EasyPanel.
+
+Inicia un contenedor de MariaDB (puedes hacerlo también desde EasyPanel):
+
+```shell
+docker run -d --name kepler-db \
+  -e MARIADB_ROOT_PASSWORD=veryverysecret \
+  -e MYSQL_DATABASE=kepler \
+  -e MYSQL_USER=kepler \
+  -e MYSQL_PASSWORD=verysecret \
+  mariadb:11.4
+```
+
+Por último arranca Kepler enlazándolo con la base de datos y exponiendo los
+puertos necesarios:
+
+```shell
+docker run -d --name kepler --link kepler-db:mariadb \
+  -p 12321:12321 -p 12309:12309 -p 12322:12322 \
+  -e MYSQL_HOSTNAME=mariadb \
+  kepler
+```
+
 Inicia un contenedor de MariaDB (puedes hacerlo también desde EasyPanel):
 
 ```shell
