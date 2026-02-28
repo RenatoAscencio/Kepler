@@ -1,5 +1,6 @@
 package org.alexdev.kepler.messages.incoming.rooms;
 
+import org.alexdev.kepler.dao.mysql.RoomBanDao;
 import org.alexdev.kepler.dao.mysql.RoomDao;
 import org.alexdev.kepler.game.fuserights.Fuseright;
 import org.alexdev.kepler.game.player.Player;
@@ -46,6 +47,12 @@ public class TRYFLAT implements MessageEvent {
         }
 
         if (room == null) {
+            return;
+        }
+
+        // Check room ban
+        if (RoomBanDao.isRoomBanned(room.getId(), player.getDetails().getId()) && !player.hasFuse(Fuseright.ENTER_LOCKED_ROOMS)) {
+            player.send(new LOCALISED_ERROR("Has sido baneado de esta sala."));
             return;
         }
 

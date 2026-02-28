@@ -67,4 +67,12 @@ public class NavigatorManager {
 
         return instance;
     }
+
+    /**
+     * Resets the navigator manager singleton, reloading categories from the database.
+     */
+    public static void reset() {
+        instance = null;
+        NavigatorManager.getInstance();
+    }
 }

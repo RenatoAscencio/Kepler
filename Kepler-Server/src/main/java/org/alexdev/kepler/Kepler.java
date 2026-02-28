@@ -15,6 +15,7 @@ import org.alexdev.kepler.game.games.snowstorm.SnowStormMapsManager;
 import org.alexdev.kepler.game.infobus.InfobusManager;
 import org.alexdev.kepler.game.item.ItemManager;
 import org.alexdev.kepler.game.moderation.ChatManager;
+import org.alexdev.kepler.game.moderation.WordfilterManager;
 import org.alexdev.kepler.game.navigator.NavigatorManager;
 import org.alexdev.kepler.game.player.PlayerManager;
 import org.alexdev.kepler.game.recycler.RecyclerManager;
@@ -102,6 +103,7 @@ public class Kepler {
             FuserightsManager.getInstance();
             NavigatorManager.getInstance();
             ChatManager.getInstance();
+            WordfilterManager.getInstance();
             SnowStormMapsManager.getInstance();
             GameScheduler.getInstance();
             GameManager.getInstance();

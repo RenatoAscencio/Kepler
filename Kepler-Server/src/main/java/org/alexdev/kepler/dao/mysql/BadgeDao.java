@@ -60,6 +60,30 @@ public class BadgeDao {
     }
 
     /**
+     * Remove badge from user
+     *
+     * @param userId
+     * @param badge
+     */
+    public static void removeBadge(int userId, String badge) {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = Storage.getStorage().getConnection();
+            stmt = Storage.getStorage().prepare("DELETE FROM users_badges WHERE user_id = ? AND badge = ?", conn);
+            stmt.setInt(1, userId);
+            stmt.setString(2, badge);
+            stmt.execute();
+        } catch (SQLException e) {
+            Storage.logError(e);
+        } finally {
+            Storage.closeSilently(stmt);
+            Storage.closeSilently(conn);
+        }
+    }
+
+    /**
      * Get all rank badges
      *
      * @return list of badges

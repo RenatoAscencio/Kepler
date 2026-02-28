@@ -229,6 +229,22 @@ public class Item {
             return this.isGateOpen();
         }
 
+        if (this.hasBehaviour(ItemBehaviour.DOOR_TELEPORTER)) {
+            return true;  // Door teleporters are always walkable
+        }
+
+        if (this.hasBehaviour(ItemBehaviour.ONE_WAY_GATE)) {
+            return this.isGateOpen();
+        }
+
+        if (this.hasBehaviour(ItemBehaviour.SOLID_SINGLE_TILE)) {
+            // Only block the primary tile, other affected tiles are walkable
+            if (entity != null) {
+                return !entity.getRoomUser().getPosition().equals(this.position);
+            }
+            return true;
+        }
+
         // Allow walking from it if stuck inside
         if (entity != null) {
             return this.getTile().getEntities().contains(entity);

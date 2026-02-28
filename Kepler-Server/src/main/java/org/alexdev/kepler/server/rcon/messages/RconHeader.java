@@ -5,7 +5,19 @@ public enum RconHeader {
     HOTEL_ALERT("hotel_alert"),
     REFRESH_CLUB("refresh_club"),
     REFRESH_HAND("refresh_hand"),
-    REFRESH_CREDITS("refresh_credits");
+    REFRESH_CREDITS("refresh_credits"),
+    DISCONNECT("disconnect"),
+    REFRESH_CATALOGUE("refresh_catalogue"),
+    REFRESH_CATALOGUE_FRONTPAGE("refresh_catalogue_frontpage"),
+    REFRESH_TRADE("refresh_trade"),
+    REFRESH_ADS("refresh_ads"),
+    MUTE_USER("mute_user"),
+    UNMUTE_USER("unmute_user"),
+    ROOM_MUTE("room_mute"),
+    REFRESH_WORDFILTER("refresh_wordfilter"),
+    REFRESH_NAVIGATOR("refresh_navigator"),
+    GIVE_BADGE("give_badge"),
+    REMOVE_BADGE("remove_badge");
 
     private final String rawHeader;
 

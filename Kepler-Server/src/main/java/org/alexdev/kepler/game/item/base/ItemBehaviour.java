@@ -48,5 +48,12 @@ public enum ItemBehaviour {
 
     PET_TOY,
 
+    SOLID_SINGLE_TILE,
+    CAN_NOT_STACK_ON_TOP,
+    DOOR_TELEPORTER,
+    ONE_WAY_GATE,
+    NO_HEAD_TURN,
+    ECO_BOX,
+
     PRIVATE_FURNITURE;
 }

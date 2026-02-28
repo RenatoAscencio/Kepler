@@ -275,4 +275,12 @@ public class RoomPlayer extends RoomEntity {
     public void setLidoVote(int lidoVote) {
         this.lidoVote = lidoVote;
     }
+
+    public long getMuteTime() {
+        return muteTime;
+    }
+
+    public void setMuteTime(long muteTime) {
+        this.muteTime = muteTime;
+    }
 }

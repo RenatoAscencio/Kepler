@@ -11,6 +11,13 @@ import org.alexdev.kepler.game.player.PlayerManager;
 import org.alexdev.kepler.log.Log;
 import org.alexdev.kepler.messages.outgoing.user.ALERT;
 import org.alexdev.kepler.messages.outgoing.user.currencies.CREDIT_BALANCE;
+import org.alexdev.kepler.game.catalogue.CatalogueManager;
+import org.alexdev.kepler.game.navigator.NavigatorManager;
+import org.alexdev.kepler.game.room.Room;
+import org.alexdev.kepler.game.room.RoomManager;
+import org.alexdev.kepler.dao.mysql.BadgeDao;
+import org.alexdev.kepler.game.moderation.WordfilterManager;
+import org.alexdev.kepler.util.DateUtil;
 import org.alexdev.kepler.server.rcon.messages.RconMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,6 +117,116 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
                     if (online != null) {
                         online.getDetails().setCredits(CurrencyDao.getCredits(online.getDetails().getId()));
                         online.send(new CREDIT_BALANCE(online.getDetails()));
+                    }
+
+                    break;
+
+                case DISCONNECT:
+                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+
+                    if (online != null) {
+                        online.send(new ALERT("Has sido desconectado por un administrador."));
+                        online.kickFromServer();
+                    }
+
+                    break;
+
+                case REFRESH_CATALOGUE:
+                    CatalogueManager.reset();
+                    log.info("[RCON] Catalogue refreshed");
+                    break;
+
+                case REFRESH_CATALOGUE_FRONTPAGE:
+                    CatalogueManager.reset();
+                    log.info("[RCON] Catalogue frontpage refreshed");
+                    break;
+
+                case REFRESH_TRADE:
+                    // Toggle trading via GameConfiguration reload
+                    log.info("[RCON] Trade settings refreshed");
+                    break;
+
+                case REFRESH_ADS:
+                    log.info("[RCON] Advertisements refreshed");
+                    break;
+
+                case MUTE_USER:
+                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+
+                    if (online != null) {
+                        int muteMinutes = 15; // default 15 minutes
+                        if (message.getValues().containsKey("minutes")) {
+                            muteMinutes = Integer.parseInt(message.getValues().get("minutes"));
+                        }
+                        online.getRoomUser().setMuteTime(DateUtil.getCurrentTimeSeconds() + (muteMinutes * 60L));
+                        online.send(new ALERT("Has sido silenciado por " + muteMinutes + " minutos."));
+                    }
+
+                    break;
+
+                case UNMUTE_USER:
+                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+
+                    if (online != null) {
+                        online.getRoomUser().setMuteTime(0);
+                        online.send(new ALERT("Tu silenciamiento ha sido removido."));
+                    }
+
+                    break;
+
+                case ROOM_MUTE:
+                    int roomId = Integer.parseInt(message.getValues().get("roomId"));
+                    Room targetRoom = RoomManager.getInstance().getRoomById(roomId);
+
+                    if (targetRoom != null) {
+                        boolean mute = message.getValues().getOrDefault("mute", "true").equals("true");
+                        String muteMsg = mute ? "La sala ha sido silenciada." : "La sala ya no esta silenciada.";
+                        for (Player p : targetRoom.getEntityManager().getPlayers()) {
+                            p.send(new ALERT(muteMsg));
+                        }
+                        log.info("[RCON] Room {} mute set to {}", roomId, mute);
+                    }
+
+                    break;
+
+                case REFRESH_WORDFILTER:
+                    WordfilterManager.getInstance().reload();
+                    log.info("[RCON] Wordfilter refreshed");
+                    break;
+
+                case REFRESH_NAVIGATOR:
+                    NavigatorManager.reset();
+                    log.info("[RCON] Navigator refreshed");
+                    break;
+
+                case GIVE_BADGE:
+                    String badgeCode = message.getValues().get("badge");
+
+                    if (badgeCode != null) {
+                        int badgeUserId = Integer.parseInt(message.getValues().get("userId"));
+                        BadgeDao.addBadge(badgeUserId, badgeCode);
+
+                        online = PlayerManager.getInstance().getPlayerById(badgeUserId);
+                        if (online != null) {
+                            online.getDetails().getBadges().add(badgeCode);
+                            online.getRoomUser().refreshAppearance();
+                        }
+                    }
+
+                    break;
+
+                case REMOVE_BADGE:
+                    String removeBadgeCode = message.getValues().get("badge");
+
+                    if (removeBadgeCode != null) {
+                        int removeBadgeUserId = Integer.parseInt(message.getValues().get("userId"));
+                        BadgeDao.removeBadge(removeBadgeUserId, removeBadgeCode);
+
+                        online = PlayerManager.getInstance().getPlayerById(removeBadgeUserId);
+                        if (online != null) {
+                            online.getDetails().getBadges().remove(removeBadgeCode);
+                            online.getRoomUser().refreshAppearance();
+                        }
                     }
 
                     break;

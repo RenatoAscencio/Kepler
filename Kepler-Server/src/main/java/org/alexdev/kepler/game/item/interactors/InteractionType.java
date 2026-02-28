@@ -41,7 +41,14 @@ public enum InteractionType {
 
     WS_JOIN_QUEUE(new WobbleSquabbleJoinQueue()),
     WS_QUEUE_TILE(new WobbleSquabbleQueueTile()),
-    WS_TILE_START(new WobbleSquabbleTileStart());
+    WS_TILE_START(new WobbleSquabbleTileStart()),
+    MULTI_HEIGHT(new DefaultInteractor()),
+    POOL_LADDER(new PoolLadderInteractor()),
+    POOL_QUEUE(new QueueTileInteractor()),
+    STEP_LIGHT(new StepLightInteractor()),
+    LOVE_RANDOMIZER(new LoveRandomizerInteractor()),
+    IDOL_VOTE_CHAIR(new DefaultInteractor()),
+    IDOL_SCOREBOARD(new DefaultInteractor());
 
     private final GenericTrigger genericTrigger;
 

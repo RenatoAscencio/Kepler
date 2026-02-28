@@ -27,6 +27,11 @@ public class TRADE_ADDITEM implements MessageEvent {
             return;
         }
 
+        // Validate item is tradable
+        if (!inventoryItem.getDefinition().isTradable()) {
+            return;
+        }
+
         player.getRoomUser().getTradeItems().add(inventoryItem);
 
         RoomTradeManager.refreshWindow(player);

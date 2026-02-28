@@ -9,6 +9,7 @@ import org.alexdev.kepler.game.item.base.ItemBehaviour;
 import org.alexdev.kepler.game.item.interactors.types.BedInteractor;
 import org.alexdev.kepler.game.item.roller.RollingData;
 import org.alexdev.kepler.game.moderation.ChatManager;
+import org.alexdev.kepler.game.moderation.WordfilterManager;
 import org.alexdev.kepler.game.pathfinder.Pathfinder;
 import org.alexdev.kepler.game.pathfinder.Position;
 import org.alexdev.kepler.game.pathfinder.Rotation;
@@ -433,7 +434,7 @@ public abstract class RoomEntity {
      * @param recieveMessages the message to send to
      */
     public void talk(String message, CHAT_MESSAGE.ChatMessageType chatMessageType, List<Player> recieveMessages) {
-        //message = WordfilterManager.filterSentence(message);
+        message = WordfilterManager.filterSentence(message);
         if (chatMessageType != CHAT_MESSAGE.ChatMessageType.WHISPER) {
             List<Entity> entities = new ArrayList<>(recieveMessages);
 

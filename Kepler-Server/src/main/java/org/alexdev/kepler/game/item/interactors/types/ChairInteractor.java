@@ -26,6 +26,11 @@ public class ChairInteractor extends GenericTrigger {
                 roomEntity.getPosition().setHeadRotation(headRotation);
             }
         }
+
+        // Prevent head turning for NO_HEAD_TURN items (game chairs like chess)
+        if (item.hasBehaviour(org.alexdev.kepler.game.item.base.ItemBehaviour.NO_HEAD_TURN)) {
+            roomEntity.getPosition().setHeadRotation(item.getPosition().getRotation());
+        }
     }
 
     @Override

@@ -36,7 +36,7 @@ public class ItemDao {
                         resultSet.getString("name"), resultSet.getString("description"),
                         resultSet.getString("behaviour"), resultSet.getString("interactor"), resultSet.getDouble("top_height"),
                         resultSet.getInt("length"), resultSet.getInt("width"), resultSet.getString("colour"), resultSet.getString("drink_ids"),
-                        resultSet.getBoolean("is_recyclable"));
+                        resultSet.getBoolean("is_recyclable"), resultSet.getBoolean("is_tradable"));
 
                 definitions.put(definition.getId(), definition);
             }

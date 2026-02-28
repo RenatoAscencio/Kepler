@@ -49,6 +49,22 @@ public class CatalogueManager {
             }
         }
 
+        // Log transaction
+        if (!itemsBought.isEmpty()) {
+            StringBuilder itemNames = new StringBuilder();
+            for (Item boughtItem : itemsBought) {
+                if (itemNames.length() > 0) itemNames.append(", ");
+                itemNames.append(boughtItem.getDefinition().getSprite());
+            }
+            TransactionDao.logTransaction(
+                player.getDetails().getId(),
+                "catalogue_purchase",
+                "Compra catalogo: " + item.getSaleCode(),
+                -item.getPrice(),
+                itemNames.toString()
+            );
+        }
+
         return itemsBought;
     }
 

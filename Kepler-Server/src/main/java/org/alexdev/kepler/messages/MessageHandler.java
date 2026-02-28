@@ -49,6 +49,8 @@ import org.alexdev.kepler.messages.incoming.trade.*;
 import org.alexdev.kepler.messages.incoming.tutorial.GET_TUTORIAL_CONFIGURATION;
 import org.alexdev.kepler.messages.incoming.tutorial.SET_TUTORIAL_MODE;
 import org.alexdev.kepler.messages.incoming.user.*;
+import org.alexdev.kepler.messages.incoming.user.GET_WARDROBE;
+import org.alexdev.kepler.messages.incoming.user.SAVE_WARDROBE;
 import org.alexdev.kepler.messages.incoming.user.settings.GET_ACCOUNT_PREFERENCES;
 import org.alexdev.kepler.messages.incoming.user.settings.GET_SOUND_SETTING;
 import org.alexdev.kepler.messages.incoming.user.settings.UPDATE_ACCOUNT;
@@ -160,6 +162,8 @@ public class MessageHandler {
         registerEvent(9, new GETAVAILABLESETS());
         registerEvent(149, new UPDATE_ACCOUNT());
         //registerEvent(315, new TEST_LATENCY());
+        registerEvent(2107, new GET_WARDROBE());
+        registerEvent(2108, new SAVE_WARDROBE());
     }
 
     private void registerClubPackets() {
