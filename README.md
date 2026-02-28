@@ -41,7 +41,7 @@ Download the latest development build from the [releases page](https://github.co
 
 To be honest, this server doesn't require much. I'd argue that the MariaDB server is more resource demanding than the emulator itself. 
 
-- JDK >= 17
+- JDK >= 25
 - MariaDB server
 
 # Installation
@@ -50,13 +50,13 @@ Install MariaDB server, connect to the database server and import Kepler.sql (lo
 
 Download the latest development build from the [releases page](https://github.com/Quackster/Kepler/releases) and rename the files to remove the short build hash version, for convenience. 
 
-Install any JDK version that is equal or above >= 17 to run the jar files.
+Install any JDK version that is equal or above >= 25 to run the jar files.
 
 Open run.sh (Linux) or run.bat (Windows) to start Kepler.
 
 ❗ Once registered as an admin, make yourself admin by setting your ``rank`` to 7 in the ``users`` table.
 
-As for the client, you can find version 14 DCRs [here](https://web.archive.org/web/20220724030154/https://raw.githubusercontent.com/Quackster/Kepler/master/tools/Quackster_v14.zip).
+As for the client, you can find version 14 DCRs: https://github.com/Quackster/Kepler-www/
 
 Setup the loader files on a web server, and once Kepler is started, ensure the loader is connecting to the correct IP and ports for both the standard connection and MUS connection. The MUS connection is used for the camera.
 

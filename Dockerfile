@@ -1,44 +1,31 @@
-##############
-# BASE STAGE #
-##############
-
-FROM alpine:3.20 AS base
-
-# Add OpenJDK17
-RUN apk add --no-cache openjdk17
-
-# Uses /kepler directory
-WORKDIR /kepler
-
 ###############
 # BUILD STAGE #
 ###############
 
-FROM gradle:7.6-jdk17-alpine AS build
+FROM alpine:3.23 AS build
 
-# Working directory for gradle image is /home/gradle by default
+RUN apk add --no-cache openjdk25 unzip
+
 WORKDIR /kepler
 
-# Install unzip utility
-RUN apk add --no-cache unzip
+# Copy only build configuration first for better layer caching
+COPY gradlew settings.gradle ./
+COPY gradle/ gradle/
+COPY Kepler-Server/build.gradle Kepler-Server/build.gradle
 
-# Copy every files/folders that are not in .dockerignore
+# Fix line endings, make executable, and cache Gradle dependencies
+RUN sed -i 's/\r$//' gradlew && \
+    chmod +x gradlew && \
+    ./gradlew --no-daemon dependencies
+
+# Copy the rest of the source code
 COPY . .
 
-# Convert CRLF to LF executable files (failing build for Windows without this)
-RUN sed -i 's/\r$//' tools/scripts/run.sh
-
-# Make run.sh executable
-RUN chmod +x tools/scripts/run.sh
-
-# Run gradle build
-RUN gradle distZip --no-daemon
-
-# Unzip builded Kepler server
-RUN unzip -qq ./Kepler-Server/build/distributions/Kepler-Server.zip -d ./release
-
-# Prepare build directory
-RUN rm -rf ./release/Kepler-Server/bin && \
+# Build and prepare the distribution
+RUN sed -i 's/\r$//' tools/scripts/run.sh && \
+    ./gradlew --no-daemon distZip && \
+    unzip -qq ./Kepler-Server/build/distributions/Kepler-Server.zip -d ./release && \
+    rm -rf ./release/Kepler-Server/bin && \
     mkdir -p ./build/lib && \
     mv ./release/Kepler-Server/lib/Kepler-Server.jar ./build/kepler.jar && \
     mv ./release/Kepler-Server/lib/* ./build/lib && \
@@ -48,19 +35,19 @@ RUN rm -rf ./release/Kepler-Server/bin && \
 # PRODUCTION STAGE #
 ####################
 
-FROM base AS production
+FROM alpine:3.23
 
-# Copy builded Kepler server
-COPY --from=build /kepler/build ./
+RUN apk add --no-cache openjdk25-jre-headless && \
+    addgroup -S kepler && adduser -S kepler -G kepler && \
+    mkdir /kepler && chown kepler:kepler /kepler
 
-# Default ports (can be overridden by environment variables)
-ENV SERVER_PORT=12321 \
-    RCON_PORT=12309 \
-    MUS_PORT=12322
+WORKDIR /kepler
 
-# Expose ports for the emulator, RCON and MUS servers
-EXPOSE ${SERVER_PORT} ${RCON_PORT} ${MUS_PORT}
+COPY --from=build --chown=kepler:kepler /kepler/build ./
 
-COPY start.sh ./
-ENTRYPOINT ["sh", "start.sh"]
+USER kepler
 
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=3 \
+  CMD cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | grep -q ":$(printf '%04X' ${SERVER_PORT:-12321}) "
+
+CMD ["sh", "run.sh"]
