@@ -6,6 +6,7 @@ import org.alexdev.kepler.game.entity.Entity;
 import org.alexdev.kepler.game.entity.EntityType;
 import org.alexdev.kepler.game.fuserights.Fuseright;
 import org.alexdev.kepler.game.player.Player;
+import org.alexdev.kepler.game.texts.TextsManager;
 import org.alexdev.kepler.messages.outgoing.user.ALERT;
 import org.alexdev.kepler.util.config.GameConfiguration;
 import org.alexdev.kepler.util.config.writer.GameConfigWriter;
@@ -34,7 +35,7 @@ public class SetConfigCommand extends Command {
         String value = args[1];
 
         if (!GameConfiguration.getInstance().getConfig().containsKey(setting)) {
-            player.send(new ALERT("The setting \"" + setting + "\" doesn't exist!")); // TODO: Add locale
+            player.send(new ALERT(TextsManager.getInstance().getValue("cmd.setconfig.not_found").replace("%setting%", setting)));
             return;
         }
 
@@ -43,7 +44,7 @@ public class SetConfigCommand extends Command {
         SettingsDao.updateSetting(setting, value);
         GameConfiguration.reset(new GameConfigWriter());
 
-        player.send(new ALERT("The setting \"" + setting + "\" value has been updated from \"" + oldValue + "\" to \"" + value + "\"")); // TODO: Add locale
+        player.send(new ALERT(TextsManager.getInstance().getValue("cmd.setconfig.updated").replace("%setting%", setting).replace("%old%", oldValue).replace("%new%", value)));
     }
 
     @Override

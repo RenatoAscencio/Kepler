@@ -422,8 +422,7 @@ public class Room {
             return false;
         }
 
-        // 8 is Club Only category (TODO: create a club_only column in room categories table)
-        if (this.getCategory().getId() == 8) {
+        if (this.getCategory() != null && this.getCategory().isClubOnly()) {
             return true;
         }
 

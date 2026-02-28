@@ -39,7 +39,8 @@ public class NavigatorDao {
                         row.getBoolean("public_spaces"), row.getBoolean("allow_trading"),
                         PlayerRank.getRankForId(row.getInt("minrole_access")),
                         PlayerRank.getRankForId(row.getInt("minrole_setflatcat")),
-                        row.getBoolean("isnode")
+                        row.getBoolean("isnode"),
+                        row.getBoolean("club_only")
                 );
 
                 categories.put(category.getId(), category);

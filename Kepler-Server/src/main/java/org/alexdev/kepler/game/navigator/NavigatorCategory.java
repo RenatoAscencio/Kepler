@@ -13,8 +13,9 @@ public class NavigatorCategory {
     private PlayerRank minimumRoleAccess;
     private PlayerRank minimumRoleSetFlat;
     private boolean isNode;
+    private boolean clubOnly;
 
-    public NavigatorCategory(int id, int parentId, String name, boolean publicSpaces, boolean allowTrading, PlayerRank minimumRoleAccess, PlayerRank minimumRoleSetFlat, boolean isNode) {
+    public NavigatorCategory(int id, int parentId, String name, boolean publicSpaces, boolean allowTrading, PlayerRank minimumRoleAccess, PlayerRank minimumRoleSetFlat, boolean isNode, boolean clubOnly) {
         this.id = id;
         this.parentId = parentId;
         this.name = name;
@@ -23,6 +24,7 @@ public class NavigatorCategory {
         this.minimumRoleAccess = minimumRoleAccess;
         this.minimumRoleSetFlat = minimumRoleSetFlat;
         this.isNode = isNode;
+        this.clubOnly = clubOnly;
     }
 
     public int getCurrentVisitors() {
@@ -79,5 +81,9 @@ public class NavigatorCategory {
 
     public boolean isNode() {
         return isNode;
+    }
+
+    public boolean isClubOnly() {
+        return clubOnly;
     }
 }

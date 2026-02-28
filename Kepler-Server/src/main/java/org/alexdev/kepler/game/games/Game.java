@@ -1,5 +1,6 @@
 package org.alexdev.kepler.game.games;
 
+import org.alexdev.kepler.dao.mysql.GameDao;
 import org.alexdev.kepler.game.GameScheduler;
 import org.alexdev.kepler.game.games.battleball.BattleBallGame;
 import org.alexdev.kepler.game.games.battleball.events.PlayerMoveEvent;
@@ -281,6 +282,8 @@ public abstract class Game {
             } else {
                 gameHistory.setExtraData(String.valueOf(((SnowStormGame) this).getGameLengthChoice()));
             }
+
+            GameDao.saveGameHistory(gameHistory);
 
             GameManager.getInstance().getLastPlayedGames(this.gameType).add(gameHistory);
             GameManager.getInstance().refreshPlayedGames();

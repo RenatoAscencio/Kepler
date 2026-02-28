@@ -64,7 +64,6 @@ public class CannonHandle {
 
             for (var kvp : stunnedPlayers) {
                 try {
-                    // TODO: Move player out of the way of user using cannon https://www.youtube.com/watch?v=YX1UZky5pg0&feature=youtu.be&t=98
                     GamePlayer stunnedPlayer = kvp.getKey();
 
                     if (stunnedPlayer.getPlayer().getRoomUser().isWalking()) {
@@ -89,13 +88,15 @@ public class CannonHandle {
                     }
 
                     if (setPosition != null) {
+                        stunnedPlayer.setPlayerState(BattleBallPlayerState.FLYING_THROUGH_AIR);
+                        game.addObjectToQueue(new PlayerUpdateObject(stunnedPlayer));
                         game.addPlayerMove(new PlayerMoveEvent(stunnedPlayer, setPosition));
                     }
 
                     // Stun player
                     PowerUpUtil.stunPlayer(game, stunnedPlayer, BattleBallPlayerState.STUNNED);
 
-                    // Set player at teir new spot
+                    // Set player at their new spot
                     if (setPosition != null) {
                         setPosition.setRotation(stunnedPlayer.getPlayer().getRoomUser().getPosition().getRotation());
                         //stunnedPlayer.getPlayer().getRoomUser().setPosition(setPosition);
@@ -105,7 +106,7 @@ public class CannonHandle {
                     ex.printStackTrace();
                 }
             }
-        }, 200, TimeUnit.MILLISECONDS);
+        }, 300, TimeUnit.MILLISECONDS);
 
 
         for (BattleBallTile tile : tilesToUpdate) {

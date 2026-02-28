@@ -7,6 +7,7 @@ import org.alexdev.kepler.game.entity.Entity;
 import org.alexdev.kepler.game.entity.EntityType;
 import org.alexdev.kepler.game.fuserights.Fuseright;
 import org.alexdev.kepler.game.player.Player;
+import org.alexdev.kepler.game.texts.TextsManager;
 import org.alexdev.kepler.messages.outgoing.rooms.user.CHAT_MESSAGE;
 import org.alexdev.kepler.messages.outgoing.user.ALERT;
 import org.apache.commons.lang3.StringUtils;
@@ -33,13 +34,13 @@ public class SetItemPriceCommand extends Command {
         String saleCode = args[0];
 
         if (CatalogueManager.getInstance().getCatalogueItem(saleCode) == null) {
-            player.send(new ALERT("That sale code doesn't exist!")); // TODO: Add locale
+            player.send(new ALERT(TextsManager.getInstance().getValue("cmd.setprice.not_found")));
             return;
         }
 
 
         if (!StringUtils.isNumeric(args[1])) {
-            player.send(new ALERT("You did not enter a number!")); // TODO: Add locale
+            player.send(new ALERT(TextsManager.getInstance().getValue("cmd.setprice.not_number")));
             return;
         }
 
@@ -47,7 +48,7 @@ public class SetItemPriceCommand extends Command {
         var item = CatalogueManager.getInstance().getCatalogueItem(saleCode);
 
         if (item.getPrice() == newPrice) {
-            player.send(new ALERT("You entered the same price that the catalogue item costs!")); // TODO: Add locale
+            player.send(new ALERT(TextsManager.getInstance().getValue("cmd.setprice.same_price")));
             return;
         }
 
@@ -59,8 +60,7 @@ public class SetItemPriceCommand extends Command {
             word = "decreased";
         }
 
-        // TODO: Add locale
-        player.send(new CHAT_MESSAGE(CHAT_MESSAGE.ChatMessageType.WHISPER, player.getRoomUser().getInstanceId(), "The " + item.getName() + " has successfully " + word + " from " + item.getPrice() + " to " + newPrice));
+        player.send(new CHAT_MESSAGE(CHAT_MESSAGE.ChatMessageType.WHISPER, player.getRoomUser().getInstanceId(), TextsManager.getInstance().getValue("cmd.setprice.updated").replace("%item%", item.getName()).replace("%word%", word).replace("%old%", String.valueOf(item.getPrice())).replace("%new%", String.valueOf(newPrice))));
         item.setPrice(newPrice);
     }
 
