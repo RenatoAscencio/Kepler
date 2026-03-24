@@ -5,7 +5,10 @@ import org.alexdev.kepler.game.pathfinder.Position;
 import org.alexdev.kepler.game.player.Player;
 import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.game.room.tasks.BotTask;
+import org.alexdev.kepler.messages.outgoing.rooms.user.CHAT_MESSAGE;
 import org.alexdev.kepler.util.config.GameConfiguration;
+
+import org.alexdev.kepler.util.DateUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,11 +88,39 @@ public class BotManager {
             }
 
             if (message.toLowerCase().contains(bot.getDetails().getName().toLowerCase())) {
-                if (bot.getBotData().getUnrecognisedSpeech().size()>0) {
-                    var botSpeech = bot.getBotData().getUnrecognisedSpeech().get(ThreadLocalRandom.current().nextInt(bot.getBotData().getUnrecognisedSpeech().size()));
-                    bot.getRoomUser().talk(botSpeech.getSpeech(), botSpeech.getChatMessageType());
+                // AI-powered response
+                if (bot.getBotData().isAiEnabled()
+                        && GameConfiguration.getInstance().getBoolean("ai.chat.enabled")) {
+
+                    // Cooldown check — avoid spam
+                    int cooldown = GameConfiguration.getInstance().getInteger("ai.chat.cooldown.seconds");
+                    long now = DateUtil.getCurrentTimeSeconds();
+
+                    if (now - bot.getLastAiResponseTime() < cooldown) {
+                        continue; // Still in cooldown, ignore
+                    }
+
+                    bot.setLastAiResponseTime(now);
+
+                    AiChatService.getInstance().generateResponse(bot, player.getDetails().getName(), message, (aiResponse) -> {
+                        if (aiResponse != null && !aiResponse.isEmpty()) {
+                            bot.getRoomUser().talk(aiResponse, CHAT_MESSAGE.ChatMessageType.CHAT);
+                        } else {
+                            fallbackResponse(bot);
+                        }
+                    });
+                } else {
+                    fallbackResponse(bot);
                 }
             }
+        }
+    }
+
+    private void fallbackResponse(Bot bot) {
+        if (bot.getBotData().getUnrecognisedSpeech().size() > 0) {
+            var botSpeech = bot.getBotData().getUnrecognisedSpeech().get(
+                    ThreadLocalRandom.current().nextInt(bot.getBotData().getUnrecognisedSpeech().size()));
+            bot.getRoomUser().talk(botSpeech.getSpeech(), botSpeech.getChatMessageType());
         }
     }
 

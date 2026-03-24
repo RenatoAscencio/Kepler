@@ -126,6 +126,12 @@ public class GameConfigWriter implements ConfigWriter {
 
         config.put("players.online", "0");
 
+        config.put("ai.chat.enabled", "false");
+        config.put("ai.chat.api_key", "");
+        config.put("ai.chat.model", "gpt-4o-mini");
+        config.put("ai.chat.max_tokens", "100");
+        config.put("ai.chat.cooldown.seconds", "10");
+
         // Catalogue pages for rare items, delimetered by pipe, first integer is page ID and second number is the amount of hours required for that rare to be affordable
         config.put("rare.cycle.pages", "28,3|29,3|31,3|32,3|33,3|34,3|35,3|36,3|40,3|43,3|30,6|37,6|38,6|39,6|44,6");
 

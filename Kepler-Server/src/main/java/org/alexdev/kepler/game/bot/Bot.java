@@ -13,6 +13,7 @@ public class Bot extends Entity {
     private BotData botData;
     private long nextWalkTime;
     private long nextSpeechTime;
+    private long lastAiResponseTime;
 
     public Bot() {
         this.playerDetails = new PlayerDetails();
@@ -66,5 +67,13 @@ public class Bot extends Entity {
 
     public void setNextSpeechTime(long nextSpeechTime) {
         this.nextSpeechTime = nextSpeechTime;
+    }
+
+    public long getLastAiResponseTime() {
+        return lastAiResponseTime;
+    }
+
+    public void setLastAiResponseTime(long lastAiResponseTime) {
+        this.lastAiResponseTime = lastAiResponseTime;
     }
 }

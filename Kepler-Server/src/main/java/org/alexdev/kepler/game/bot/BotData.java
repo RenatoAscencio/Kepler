@@ -19,9 +19,12 @@ public class BotData {
     private List<BotSpeech> responses;
     private List<BotSpeech> unrecognisedSpeech;
     private List<String> drinks;
+    private boolean aiEnabled;
+    private String aiSystemPrompt;
 
     public BotData(String name, String mission, int x, int y, int headRotation, int bodyRotation, String figure, String walkspaceData,
-                   String speech, String responses, String unrecognisedResponses, String drinks) {
+                   String speech, String responses, String unrecognisedResponses, String drinks,
+                   boolean aiEnabled, String aiSystemPrompt) {
         this.name = name;
         this.mission = mission;
         this.startPosition = new Position(x, y, 0, headRotation, bodyRotation);
@@ -41,6 +44,8 @@ public class BotData {
         this.responses = this.parseSpeech(responses);
         this.unrecognisedSpeech = this.parseSpeech(unrecognisedResponses);
         this.drinks = this.drinks = drinks.length() > 0 ? Arrays.asList(drinks.split(",")) : new ArrayList<>();
+        this.aiEnabled = aiEnabled;
+        this.aiSystemPrompt = aiSystemPrompt;
     }
 
     private List<BotSpeech> parseSpeech(String responses) {
@@ -92,5 +97,13 @@ public class BotData {
 
     public List<String> getDrinks() {
         return drinks;
+    }
+
+    public boolean isAiEnabled() {
+        return aiEnabled;
+    }
+
+    public String getAiSystemPrompt() {
+        return aiSystemPrompt;
     }
 }

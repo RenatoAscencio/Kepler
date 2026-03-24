@@ -37,16 +37,18 @@ public class BotDao {
                         resultSet.getString("speech"),
                         resultSet.getString("response"),
                         resultSet.getString("unrecognised_response"),
-                        resultSet.getString("hand_items")
+                        resultSet.getString("hand_items"),
+                        resultSet.getBoolean("ai_enabled"),
+                        resultSet.getString("ai_system_prompt")
                 ));
             }
 
         } catch (Exception e) {
             Storage.logError(e);
         } finally {
+            Storage.closeSilently(resultSet);
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
-            Storage.closeSilently(resultSet);
         }
 
         return botData;
