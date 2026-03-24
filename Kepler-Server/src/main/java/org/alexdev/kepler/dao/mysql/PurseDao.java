@@ -46,6 +46,7 @@ public class PurseDao {
                 voucher = new Voucher(resultSet.getInt("credits"));
 
                 //Get related voucher items
+                Storage.closeSilently(preparedStatement);
                 preparedStatement = Storage.getStorage().prepare("SELECT catalogue_sale_code FROM vouchers_items INNER JOIN catalogue_items ON catalogue_items.sale_code = vouchers_items.catalogue_sale_code WHERE voucher_code = ?", sqlConnection);
                 preparedStatement.setString(1, voucherCode);
                 resultSet2 = preparedStatement.executeQuery();
@@ -57,13 +58,15 @@ public class PurseDao {
 
                 //Delete the voucher and related items if it's single use only
                 if (isSingleUse) {
+                    Storage.closeSilently(preparedStatement);
                     preparedStatement = Storage.getStorage().prepare("DELETE FROM vouchers WHERE voucher_code = ?", sqlConnection);
                     preparedStatement.setString(1, voucherCode);
-                    preparedStatement.executeQuery();
+                    preparedStatement.executeUpdate();
 
+                    Storage.closeSilently(preparedStatement);
                     preparedStatement = Storage.getStorage().prepare("DELETE FROM vouchers_items WHERE voucher_code = ?", sqlConnection);
                     preparedStatement.setString(1, voucherCode);
-                    preparedStatement.executeQuery();
+                    preparedStatement.executeUpdate();
                 }
             }
         } catch (Exception e) {

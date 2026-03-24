@@ -7,6 +7,7 @@ import org.alexdev.kepler.messages.incoming.pets.GETPETSTAT;
 import org.alexdev.kepler.messages.incoming.catalogue.GCAP;
 import org.alexdev.kepler.messages.incoming.catalogue.GCIX;
 import org.alexdev.kepler.messages.incoming.catalogue.GET_ALIAS_LIST;
+import org.alexdev.kepler.messages.incoming.catalogue.GET_FURNI_REVISIONS;
 import org.alexdev.kepler.messages.incoming.catalogue.GRPC;
 import org.alexdev.kepler.messages.incoming.club.GET_CLUB;
 import org.alexdev.kepler.messages.incoming.club.SCR_GIFT_APPROVAL;
@@ -402,6 +403,7 @@ public class MessageHandler {
         registerEvent(102, new GCAP());
         registerEvent(100, new GRPC());
         registerEvent(215, new GET_ALIAS_LIST());
+        registerEvent(213, new GET_FURNI_REVISIONS());
     }
 
     /**

@@ -58,6 +58,11 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
         RconMessage message = (RconMessage) msg;
         //log.info("[RCON] Message received: " + message.getHeader());
 
+        if (message.getHeader() == null) {
+            log.warn("[RCON] Unknown command received, ignoring");
+            return;
+        }
+
         try {
             switch (message.getHeader()) {
                 case REFRESH_LOOKS:

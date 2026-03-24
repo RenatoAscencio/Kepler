@@ -144,7 +144,7 @@ public class RoomManager {
             }
 
             if (!(room.getData().getRating() > 0)) {
-                return;
+                continue;
             }
 
             RoomVoteDao.removeExpiredVotes(room.getId());

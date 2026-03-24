@@ -47,11 +47,13 @@ public class RareDao {
             }
 
             preparedStatement.executeBatch();
-            sqlConnection.setAutoCommit(true);
+            sqlConnection.commit();
         } catch (Exception e) {
+            try { if (sqlConnection != null) sqlConnection.rollback(); } catch (Exception ignored) {}
             Storage.logError(e);
             throw e;
         } finally {
+            try { if (sqlConnection != null) sqlConnection.setAutoCommit(true); } catch (Exception ignored) {}
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
         }
@@ -78,6 +80,7 @@ public class RareDao {
             Storage.logError(e);
             throw e;
         } finally {
+            Storage.closeSilently(resultSet);
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
         }

@@ -58,9 +58,9 @@ public class PhotoDao {
             Storage.logError(e);
             throw e;
         } finally {
+            Storage.closeSilently(resultSet);
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
-            Storage.closeSilently(resultSet);
         }
 
         return photo;

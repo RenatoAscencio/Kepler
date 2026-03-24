@@ -73,7 +73,8 @@ public class MessengerDao {
 
         try {
             sqlConnection = Storage.getStorage().getConnection();
-            preparedStatement = Storage.getStorage().prepare("SELECT from_id,username,figure,sex,console_motto,last_online FROM messenger_requests INNER JOIN users ON messenger_requests.from_id = users.id WHERE to_id = " + userId, sqlConnection);
+            preparedStatement = Storage.getStorage().prepare("SELECT from_id,username,figure,sex,console_motto,last_online FROM messenger_requests INNER JOIN users ON messenger_requests.from_id = users.id WHERE to_id = ?", sqlConnection);
+            preparedStatement.setInt(1, userId);
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
@@ -170,7 +171,11 @@ public class MessengerDao {
 
         try {
             sqlConnection = Storage.getStorage().getConnection();
-            preparedStatement = Storage.getStorage().prepare("SELECT * FROM messenger_requests WHERE (to_id = '" + toId + "') AND (from_id = '" + fromId + "') OR (from_id = '" + toId + "') AND (to_id = '" + fromId + "')", sqlConnection);
+            preparedStatement = Storage.getStorage().prepare("SELECT * FROM messenger_requests WHERE (to_id = ? AND from_id = ?) OR (from_id = ? AND to_id = ?)", sqlConnection);
+            preparedStatement.setInt(1, toId);
+            preparedStatement.setInt(2, fromId);
+            preparedStatement.setInt(3, toId);
+            preparedStatement.setInt(4, fromId);
             resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
@@ -293,6 +298,7 @@ public class MessengerDao {
     public static int newMessage(int fromId, int toId, String message) {
         Connection sqlConnection = null;
         PreparedStatement preparedStatement = null;
+        ResultSet generatedKeys = null;
 
         int messageID = 0;
 
@@ -307,15 +313,16 @@ public class MessengerDao {
             preparedStatement.setLong(5, DateUtil.getCurrentTimeSeconds());
             preparedStatement.executeUpdate();
 
-            ResultSet row = preparedStatement.getGeneratedKeys();
+            generatedKeys = preparedStatement.getGeneratedKeys();
 
-            if (row != null && row.next()) {
-                messageID = row.getInt(1);
+            if (generatedKeys != null && generatedKeys.next()) {
+                messageID = generatedKeys.getInt(1);
             }
 
         } catch (SQLException e) {
             Storage.logError(e);
         } finally {
+            Storage.closeSilently(generatedKeys);
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
         }
@@ -339,7 +346,8 @@ public class MessengerDao {
         try {
 
             sqlConnection = Storage.getStorage().getConnection();
-            preparedStatement = Storage.getStorage().prepare("SELECT * FROM messenger_messages WHERE receiver_id = " + userId + " AND unread = 1", sqlConnection);
+            preparedStatement = Storage.getStorage().prepare("SELECT * FROM messenger_messages WHERE receiver_id = ? AND unread = 1", sqlConnection);
+            preparedStatement.setInt(1, userId);
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
@@ -366,7 +374,20 @@ public class MessengerDao {
      * @param messageId the message id to reset
      */
     public static void markMessageRead(int messageId) throws SQLException {
-        Storage.getStorage().execute("UPDATE messenger_messages SET unread = 0 WHERE id = " + messageId);
+        Connection sqlConnection = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            sqlConnection = Storage.getStorage().getConnection();
+            preparedStatement = Storage.getStorage().prepare("UPDATE messenger_messages SET unread = 0 WHERE id = ?", sqlConnection);
+            preparedStatement.setInt(1, messageId);
+            preparedStatement.execute();
+        } catch (Exception e) {
+            Storage.logError(e);
+        } finally {
+            Storage.closeSilently(preparedStatement);
+            Storage.closeSilently(sqlConnection);
+        }
     }
 
     public static List<Integer> search(String query) {

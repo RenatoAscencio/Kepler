@@ -221,11 +221,13 @@ public class ItemDao {
                 }
 
                 preparedStatement.executeBatch();
-                sqlConnection.setAutoCommit(true);
+                sqlConnection.commit();
 
             } catch (Exception e) {
                 Storage.logError(e);
+                try { if (sqlConnection != null) sqlConnection.rollback(); } catch (Exception ignored) {}
             } finally {
+                try { if (sqlConnection != null) sqlConnection.setAutoCommit(true); } catch (Exception ignored) {}
                 Storage.closeSilently(preparedStatement);
                 Storage.closeSilently(sqlConnection);
             }
@@ -344,11 +346,13 @@ public class ItemDao {
             }
 
             preparedStatement.executeBatch();
-            sqlConnection.setAutoCommit(true);
+            sqlConnection.commit();
 
         } catch (Exception e) {
             Storage.logError(e);
+            try { if (sqlConnection != null) sqlConnection.rollback(); } catch (Exception ignored) {}
         } finally {
+            try { if (sqlConnection != null) sqlConnection.setAutoCommit(true); } catch (Exception ignored) {}
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
         }

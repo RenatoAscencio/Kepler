@@ -204,7 +204,7 @@ public class Storage {
      */
     public static void closeSilently(ResultSet resultSet) {
         try {
-            resultSet.close();
+            if (resultSet != null) resultSet.close();
         } catch (Exception e) {
             logError(e);
         }
@@ -217,7 +217,7 @@ public class Storage {
      */
     public static void closeSilently(PreparedStatement preparedStatement) {
         try {
-            preparedStatement.close();
+            if (preparedStatement != null) preparedStatement.close();
         } catch (Exception e) {
             logError(e);
         }
@@ -230,7 +230,7 @@ public class Storage {
      */
     public static void closeSilently(Connection sqlConnection) {
         try {
-            sqlConnection.close();
+            if (sqlConnection != null) sqlConnection.close();
         } catch (Exception e) {
             logError(e);
         }

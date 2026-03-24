@@ -32,9 +32,9 @@ public class RecyclerDao {
         } catch (Exception e) {
             Storage.logError(e);
         } finally {
+            Storage.closeSilently(resultSet);
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
-            Storage.closeSilently(resultSet);
         }
 
         return recyclerRewardList;
@@ -60,9 +60,9 @@ public class RecyclerDao {
         } catch (Exception e) {
             Storage.logError(e);
         } finally {
+            Storage.closeSilently(resultSet);
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
-            Storage.closeSilently(resultSet);
         }
 
         return recyclerSession;
