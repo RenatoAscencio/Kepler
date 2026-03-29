@@ -44,6 +44,7 @@ RUN apk add --no-cache openjdk25-jre-headless && \
 WORKDIR /kepler
 
 COPY --from=build --chown=kepler:kepler /kepler/build ./
+COPY --chown=kepler:kepler server.ini ./
 
 USER kepler
 
