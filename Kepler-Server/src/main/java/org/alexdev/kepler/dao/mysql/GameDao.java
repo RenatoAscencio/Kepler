@@ -191,7 +191,7 @@ public class GameDao {
         } catch (Exception e) {
             try {
                 // Rollback these queries
-                conn.rollback();
+                if (conn != null) conn.rollback();
             } catch(SQLException re) {
                 Storage.logError(re);
             }
