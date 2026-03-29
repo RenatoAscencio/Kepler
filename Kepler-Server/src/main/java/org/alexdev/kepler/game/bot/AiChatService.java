@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 public class AiChatService {
-    private static AiChatService instance;
+    private static volatile AiChatService instance;
     private static final Logger log = LoggerFactory.getLogger(AiChatService.class);
 
     private final HttpClient httpClient;
@@ -115,7 +115,11 @@ public class AiChatService {
 
     public static AiChatService getInstance() {
         if (instance == null) {
-            instance = new AiChatService();
+            synchronized (AiChatService.class) {
+                if (instance == null) {
+                    instance = new AiChatService();
+                }
+            }
         }
         return instance;
     }

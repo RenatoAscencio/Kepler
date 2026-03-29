@@ -29,6 +29,16 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
 
     private final RconServer server;
 
+    /**
+     * Safely parse userId from RCON message values.
+     * Returns -1 if the key is missing or not a valid integer.
+     */
+    private static int parseUserId(RconMessage message) {
+        String val = message.getValues().get("userId");
+        if (val == null) return -1;
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return -1; }
+    }
+
     public RconConnectionHandler(RconServer rconServer) {
         this.server = rconServer;
     }
@@ -66,7 +76,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
         try {
             switch (message.getHeader()) {
                 case REFRESH_LOOKS:
-                    Player online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+                    Player online = PlayerManager.getInstance().getPlayerById(parseUserId(message));
 
                     if (online != null) {
                         online.getRoomUser().refreshAppearance();
@@ -75,6 +85,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
                     break;
                 case HOTEL_ALERT:
                     String hotelAlert = message.getValues().get("message");
+                    if (hotelAlert == null) break;
 
                     StringBuilder alert = new StringBuilder();
                     alert.append(hotelAlert);
@@ -90,7 +101,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
                     }
                     break;
                 case REFRESH_CLUB:
-                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+                    online = PlayerManager.getInstance().getPlayerById(parseUserId(message));
 
                     if (online != null) {
                         PlayerDetails playerDetails = PlayerDao.getDetails(online.getDetails().getId());
@@ -106,7 +117,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
 
                     break;
                 case REFRESH_HAND:
-                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+                    online = PlayerManager.getInstance().getPlayerById(parseUserId(message));
 
                     if (online != null) {
                         online.getInventory().reload();
@@ -117,7 +128,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
 
                     break;
                 case REFRESH_CREDITS:
-                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+                    online = PlayerManager.getInstance().getPlayerById(parseUserId(message));
 
                     if (online != null) {
                         online.getDetails().setCredits(CurrencyDao.getCredits(online.getDetails().getId()));
@@ -127,7 +138,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
                     break;
 
                 case DISCONNECT:
-                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+                    online = PlayerManager.getInstance().getPlayerById(parseUserId(message));
 
                     if (online != null) {
                         online.send(new ALERT("Has sido desconectado por un administrador."));
@@ -156,7 +167,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
                     break;
 
                 case MUTE_USER:
-                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+                    online = PlayerManager.getInstance().getPlayerById(parseUserId(message));
 
                     if (online != null) {
                         int muteMinutes = 15; // default 15 minutes
@@ -170,7 +181,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
                     break;
 
                 case UNMUTE_USER:
-                    online = PlayerManager.getInstance().getPlayerById(Integer.parseInt(message.getValues().get("userId")));
+                    online = PlayerManager.getInstance().getPlayerById(parseUserId(message));
 
                     if (online != null) {
                         online.getRoomUser().setMuteTime(0);
