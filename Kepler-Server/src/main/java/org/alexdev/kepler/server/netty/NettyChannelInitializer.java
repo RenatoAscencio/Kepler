@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.alexdev.kepler.server.netty.codec.NetworkDecoder;
 import org.alexdev.kepler.server.netty.codec.NetworkEncoder;
+import org.alexdev.kepler.server.netty.codec.websocket.WebSocketHandshakeCompleteHandler;
 import org.alexdev.kepler.server.netty.codec.websocket.ProtocolDetector;
 import org.alexdev.kepler.server.netty.codec.websocket.WebSocketBinaryFrameCodec;
 import org.alexdev.kepler.server.netty.connections.ConnectionHandler;
@@ -34,8 +35,10 @@ public class NettyChannelInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast("httpCodec", new HttpServerCodec());
         pipeline.addLast("httpAggregator", new HttpObjectAggregator(65536));
         pipeline.addLast("wsProtocol", new WebSocketServerProtocolHandler("/", null, true, 65536));
-        pipeline.addLast("wsCodec", new WebSocketBinaryFrameCodec());
-        configureNative(pipeline);
+        pipeline.addLast("wsHandshakeComplete", new WebSocketHandshakeCompleteHandler(p -> {
+            p.addLast("wsCodec", new WebSocketBinaryFrameCodec());
+            configureNative(p);
+        }));
     }
 
     private void configureNative(ChannelPipeline pipeline) {
