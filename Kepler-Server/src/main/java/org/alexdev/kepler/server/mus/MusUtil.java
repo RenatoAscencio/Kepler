@@ -5,24 +5,39 @@ import org.alexdev.kepler.server.mus.streams.MusPropList;
 import org.alexdev.kepler.server.mus.streams.MusTypes;
 
 public class MusUtil {
+    private static final int MAX_STRING_LENGTH = 64 * 1024;
+    private static final int MAX_PROP_LIST_LENGTH = 128;
+    private static final int MAX_PROP_DATA_LENGTH = 1024 * 1024;
+
     public static String readEvenPaddedString(ByteBuf in) {
         // String length
         int length = in.readInt();
-        if (length <= 0) {
-            return "";
-        } else {
-            // Actual string bytes
-            byte[] bytes = new byte[length];
-            in.readBytes(bytes);
 
-            // Advance one byte if uneven
-            if ((length % 2) != 0) {
-                in.readByte();
-            }
-
-            // Return the string
-            return new String(bytes);
+        if (length < 0 || length > MAX_STRING_LENGTH) {
+            throw new IllegalArgumentException("Invalid MUS string length: " + length);
         }
+
+        if (length == 0) {
+            return "";
+        }
+
+        int padding = (length % 2) != 0 ? 1 : 0;
+
+        if (in.readableBytes() < length + padding) {
+            throw new IllegalArgumentException("MUS string length exceeds readable bytes: " + length);
+        }
+
+        // Actual string bytes
+        byte[] bytes = new byte[length];
+        in.readBytes(bytes);
+
+        // Advance one byte if uneven
+        if (padding == 1) {
+            in.readByte();
+        }
+
+        // Return the string
+        return new String(bytes);
     }
 
     public static void writeEvenPaddedString(ByteBuf out, String str) {
@@ -41,6 +56,10 @@ public class MusUtil {
     public static MusPropList readPropList(ByteBuf in) {
         // Length of list
         int length = in.readInt();
+
+        if (length < 0 || length > MAX_PROP_LIST_LENGTH) {
+            throw new IllegalArgumentException("Invalid MUS prop list length: " + length);
+        }
 
         // Allocate props
         MusPropList props = new MusPropList(length);
@@ -63,9 +82,20 @@ public class MusUtil {
             } else {
                 dataLength = in.readInt();
             }
+
+            if (dataLength < 0 || dataLength > MAX_PROP_DATA_LENGTH) {
+                throw new IllegalArgumentException("Invalid MUS prop data length: " + dataLength);
+            }
+
+            int padding = (dataLength % 2) != 0 ? 1 : 0;
+
+            if (in.readableBytes() < dataLength + padding) {
+                throw new IllegalArgumentException("MUS prop data length exceeds readable bytes: " + dataLength);
+            }
+
             byte[] data = new byte[dataLength];
             in.readBytes(data);
-            if ((dataLength % 2) != 0) {
+            if (padding == 1) {
                 in.readByte();
             }
 

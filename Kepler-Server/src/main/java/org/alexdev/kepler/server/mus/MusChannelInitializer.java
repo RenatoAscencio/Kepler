@@ -14,6 +14,8 @@ import org.alexdev.kepler.server.netty.codec.websocket.WebSocketBinaryFrameCodec
 import org.alexdev.kepler.server.netty.codec.websocket.WebSocketHandshakeCompleteHandler;
 
 public class MusChannelInitializer extends ChannelInitializer<SocketChannel> {
+    private static final int MAX_MUS_FRAME_SIZE = 1024 * 1024 + 6;
+
     private final MusServer musServer;
 
     public MusChannelInitializer(MusServer musServer) {
@@ -40,7 +42,7 @@ public class MusChannelInitializer extends ChannelInitializer<SocketChannel> {
     }
 
     private void configureNative(ChannelPipeline pipeline) {
-        pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(1683226630, 2, 4, 0, 0));
+        pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(MAX_MUS_FRAME_SIZE, 2, 4, 0, 0));
         pipeline.addLast("gameDecoder", new MusNetworkDecoder());
         pipeline.addLast("gameEncoder", new MusNetworkEncoder());
         pipeline.addLast("handler", new MusConnectionHandler(this.musServer));

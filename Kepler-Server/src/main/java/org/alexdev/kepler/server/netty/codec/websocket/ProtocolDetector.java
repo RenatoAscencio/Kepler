@@ -7,6 +7,7 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -42,5 +43,14 @@ public class ProtocolDetector extends ByteToMessageDecoder {
         }
 
         pipeline.remove(this);
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        if (!(cause instanceof IOException)) {
+            log.warn("Error while detecting client protocol from {}", ctx.channel().remoteAddress(), cause);
+        }
+
+        ctx.close();
     }
 }

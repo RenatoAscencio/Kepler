@@ -19,6 +19,7 @@ public class NetworkEncoder extends MessageToMessageEncoder<Object> {
     @Override
     protected void encode(ChannelHandlerContext ctx, Object obj, List<Object> out) throws Exception {
         ByteBuf buffer = ctx.alloc().buffer();
+        boolean addedToOutput = false;
 
         try {
             if (obj instanceof MessageComposer) {
@@ -55,8 +56,13 @@ public class NetworkEncoder extends MessageToMessageEncoder<Object> {
             }
 
             out.add(buffer);
+            addedToOutput = true;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Log.getErrorLogger().error("Netty encoder error occurred: ", ex);
+        } finally {
+            if (!addedToOutput) {
+                buffer.release();
+            }
         }
     }
 }
