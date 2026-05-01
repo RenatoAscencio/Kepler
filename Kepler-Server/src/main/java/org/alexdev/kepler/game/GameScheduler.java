@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class GameScheduler implements Runnable {
@@ -49,13 +50,16 @@ public class GameScheduler implements Runnable {
     @Override
     public void run() {
         try {
+            long tick = this.tickRate.get();
+            int now = DateUtil.getCurrentTimeSeconds();
+
             PlayerManager.getInstance().checkPlayerPeak();
 
             for (Player player : PlayerManager.getInstance().getPlayers()) {
                 if (player.getRoomUser().getRoom() != null) {
 
                     // If their sleep timer is now lower than the current time, make them sleep.
-                    if (DateUtil.getCurrentTimeSeconds() > player.getRoomUser().getTimerManager().getSleepTimer()) {
+                    if (now > player.getRoomUser().getTimerManager().getSleepTimer()) {
                         if (!player.getRoomUser().containsStatus(StatusType.AVATAR_SLEEP)) {
                             player.getRoomUser().removeDrinks();
                             player.getRoomUser().setStatus(StatusType.AVATAR_SLEEP, "");
@@ -64,13 +68,13 @@ public class GameScheduler implements Runnable {
                     }
 
                     // If their afk timer is up, send them out.
-                    if (DateUtil.getCurrentTimeSeconds() > player.getRoomUser().getTimerManager().getAfkTimer()) {
+                    if (now > player.getRoomUser().getTimerManager().getAfkTimer()) {
                         player.getRoomUser().kick(true);
                     }
 
                     // If they're not sleeping (aka, active) and their next handout expired, give them their credits!
                     if (GameConfiguration.getInstance().getBoolean("credits.scheduler.enabled")) {
-                        if (DateUtil.getCurrentTimeSeconds() > player.getDetails().getNextHandout()) {
+                        if (now > player.getDetails().getNextHandout()) {
                             if (!player.getRoomUser().containsStatus(StatusType.AVATAR_SLEEP)) {
                                 this.creditsHandoutQueue.put(player);
                             }
@@ -82,7 +86,7 @@ public class GameScheduler implements Runnable {
             }
 
             if (GameConfiguration.getInstance().getBoolean("credits.scheduler.enabled") &&
-                    this.tickRate.get() % 30 == 0) { // Save every 30 seconds
+                    tick % 30 == 0) { // Save every 30 seconds
 
                 List<Player> playersToHandout = new ArrayList<>();
                 this.creditsHandoutQueue.drainTo(playersToHandout);
@@ -105,31 +109,31 @@ public class GameScheduler implements Runnable {
             }
 
             // Purge expired rows
-            if (this.tickRate.get() % TimeUnit.DAYS.toSeconds(1) == 0) {
+            if (tick % TimeUnit.DAYS.toSeconds(1) == 0) {
                 EventsManager.getInstance().removeExpiredEvents();
             }
 
             // Item saving queue ticker every 10 seconds
-            if (this.tickRate.get() % 10 == 0) {
+            if (tick % 10 == 0) {
                 if (this.itemSavingQueue != null) {
                     this.performItemSaving();
                 }
             }
 
             // Item deletion queue ticker every 1 second
-            if (this.tickRate.get() % 5 == 0) {
-                if (this.itemSavingQueue != null) {
+            if (tick % 5 == 0) {
+                if (this.itemDeletionQueue != null) {
                     this.performItemDeletion();
                 }
             }
 
             // Delete expired CFH's every 60 seconds
-            if (this.tickRate.get() % 60 == 0) {
+            if (tick % 60 == 0) {
                 CallForHelpManager.getInstance().purgeExpiredCfh();
             }
 
             // Save chat messages every 60 seconds
-            if (this.tickRate.get() % 60 == 0) {
+            if (tick % 60 == 0) {
                 ChatManager.getInstance().performChatSaving();
             }
 
@@ -195,12 +199,40 @@ public class GameScheduler implements Runnable {
     }
 
     /**
+     * Stop scheduled work and release executor threads.
+     */
+    public void shutdown() throws InterruptedException {
+        if (this.gameScheduler != null) {
+            this.gameScheduler.cancel(false);
+        }
+
+        this.schedulerService.shutdown();
+
+        if (!this.schedulerService.awaitTermination(10, TimeUnit.SECONDS)) {
+            this.schedulerService.shutdownNow();
+        }
+    }
+
+    /**
      * Creates the new schedulerService.
      *
      * @return the scheduled executor service
      */
     public static ScheduledExecutorService createNewScheduler() {
-        return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+        int threads = Math.max(2, Runtime.getRuntime().availableProcessors());
+        AtomicInteger threadId = new AtomicInteger();
+
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(threads, runnable -> {
+            Thread thread = new Thread(runnable, "kepler-game-scheduler-" + threadId.incrementAndGet());
+            thread.setUncaughtExceptionHandler((t, ex) -> Log.getErrorLogger().error("Uncaught scheduler exception in {}", t.getName(), ex));
+            return thread;
+        });
+
+        executor.setRemoveOnCancelPolicy(true);
+        executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
+        executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+
+        return executor;
     }
 
     /**
@@ -214,5 +246,14 @@ public class GameScheduler implements Runnable {
         }
 
         return instance;
+    }
+
+    /**
+     * Checks if the scheduler has already been started.
+     *
+     * @return true if the singleton has been created
+     */
+    public static boolean hasInstance() {
+        return instance != null;
     }
 }

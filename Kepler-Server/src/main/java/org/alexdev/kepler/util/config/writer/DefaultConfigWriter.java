@@ -22,6 +22,8 @@ public class DefaultConfigWriter implements ConfigWriter {
         config.put("log.sent.packets", "false");
         config.put("log.received.packets", "false");
 
+        config.put("netty.leak.detector.level", "simple");
+
         config.put("mysql.hostname", "127.0.0.1");
         config.put("mysql.port", "3306");
         config.put("mysql.user", "kepler");
@@ -57,6 +59,9 @@ public class DefaultConfigWriter implements ConfigWriter {
         writer.println("log.connections=" + config.get("log.connections"));
         writer.println("log.received.packets=" + config.get("log.received.packets"));
         writer.println("log.sent.packets=" + config.get("log.sent.packets"));
+        writer.println("");
+        writer.println("[Netty]");
+        writer.println("netty.leak.detector.level=" + config.get("netty.leak.detector.level"));
         writer.println("");
         writer.println("[Console]");
         writer.print("debug=" + config.get("debug"));

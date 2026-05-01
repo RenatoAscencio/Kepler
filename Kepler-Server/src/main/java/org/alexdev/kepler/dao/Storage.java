@@ -98,13 +98,11 @@ public class Storage {
      * @throws SQLException the SQL exception
      */
     public PreparedStatement prepare(String query, Connection conn) throws SQLException {
-        try {
-            return conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (conn == null) {
+            throw new SQLException("Could not prepare query because the database connection is unavailable");
         }
 
-        return null;
+        return conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
     }
 
     /**
@@ -148,9 +146,10 @@ public class Storage {
             sqlConnection = this.getConnection();
             preparedStatement = this.prepare(query, sqlConnection);
             resultSet = preparedStatement.executeQuery();
-            resultSet.next();
 
-            value = resultSet.getString(query.split(" ")[1]);
+            if (resultSet.next()) {
+                value = resultSet.getString(query.split(" ")[1]);
+            }
 
         } catch (Exception e) {
             Storage.logError(e);
@@ -169,6 +168,10 @@ public class Storage {
      * @return the connection count
      */
     public int getConnectionCount() {
+        if (this.ds == null || this.ds.isClosed()) {
+            return 0;
+        }
+
         return this.ds.getHikariPoolMXBean().getActiveConnections();
     }
 
@@ -178,6 +181,10 @@ public class Storage {
      * @return the connection
      */
     public Connection getConnection() {
+        if (this.ds == null || this.ds.isClosed()) {
+            Storage.getLogger().error("Could not get MySQL connection because the pool is closed or unavailable");
+            return null;
+        }
 
         try {
             return this.ds.getConnection();
@@ -186,6 +193,19 @@ public class Storage {
         }
 
         return null;
+    }
+
+    /**
+     * Dispose the database connection pool.
+     */
+    public static void dispose() {
+        if (storage == null || storage.ds == null || storage.ds.isClosed()) {
+            return;
+        }
+
+        Storage.getLogger().info("Closing MySQL connection pool");
+        storage.ds.close();
+        storage.isConnected = false;
     }
 
     /**

@@ -46,9 +46,9 @@ public class RconServer {
      * Create the Netty sockets.
      */
     public void createSocket() {
-        int threads = Runtime.getRuntime().availableProcessors();
-        this.bossGroup = (Epoll.isAvailable()) ? new EpollEventLoopGroup(threads) : new NioEventLoopGroup(threads);
-        this.workerGroup = (Epoll.isAvailable()) ? new EpollEventLoopGroup(threads) : new NioEventLoopGroup(threads);
+        int workerThreads = Math.max(1, Runtime.getRuntime().availableProcessors());
+        this.bossGroup = (Epoll.isAvailable()) ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
+        this.workerGroup = (Epoll.isAvailable()) ? new EpollEventLoopGroup(workerThreads) : new NioEventLoopGroup(workerThreads);
 
         this.bootstrap.group(bossGroup, workerGroup)
                 .channel((Epoll.isAvailable()) ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
@@ -81,9 +81,17 @@ public class RconServer {
      * @throws InterruptedException will throw exception if fails
      */
     public void dispose() throws InterruptedException {
-        // Shutdown gracefully
-        this.workerGroup.shutdownGracefully().sync();
-        this.bossGroup.shutdownGracefully().sync();
+        if (this.channels != null) {
+            this.channels.close().sync();
+        }
+
+        if (this.workerGroup != null) {
+            this.workerGroup.shutdownGracefully().sync();
+        }
+
+        if (this.bossGroup != null) {
+            this.bossGroup.shutdownGracefully().sync();
+        }
     }
 
     /**

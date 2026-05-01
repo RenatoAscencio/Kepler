@@ -72,7 +72,7 @@ public class Kepler {
             ServerConfiguration.load("server.ini");
 
             log = LoggerFactory.getLogger(Kepler.class);
-            ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
+            configureResourceLeakDetector();
 
             System.out.println("  _  __          _           \n" +
                     " | |/ /___ _ __ | | ___ _ __ \n" +
@@ -156,12 +156,12 @@ public class Kepler {
 
             Runtime.getRuntime().addShutdownHook(new Thread(Kepler::dispose));
         } catch (Exception e) {
-            e.printStackTrace();
+            logStartupError(e);
         }
     }
 
     private static void setupServer() {
-        String serverIP = ServerConfiguration.getString("server.bind");
+        serverIP = ServerConfiguration.getString("server.bind");
 
         if (serverIP.length() == 0) {
             log.error("Game server bind address is not provided");
@@ -222,23 +222,88 @@ public class Kepler {
     }
 
     private static void dispose() {
-        try {
-
-            log.info("Shutting down server!");
-            isShutdown = true;
-
-            // TODO: all the managers
-            ChatManager.getInstance().performChatSaving();
-            
-            GameScheduler.getInstance().performItemSaving();
-            GameScheduler.getInstance().performItemDeletion();
-
-            PlayerManager.getInstance().dispose();
-
-            server.dispose();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (isShutdown) {
+            return;
         }
+
+        isShutdown = true;
+
+        if (log != null) {
+            log.info("Shutting down server!");
+        }
+
+        runShutdownStep("chat persistence", () -> ChatManager.getInstance().performChatSaving());
+
+        if (GameScheduler.hasInstance()) {
+            GameScheduler scheduler = GameScheduler.getInstance();
+            runShutdownStep("item persistence", scheduler::performItemSaving);
+            runShutdownStep("item deletion persistence", scheduler::performItemDeletion);
+        }
+
+        runShutdownStep("player sessions", () -> PlayerManager.getInstance().dispose());
+        runShutdownStep("game socket", () -> {
+            if (server != null) {
+                server.dispose();
+            }
+        });
+        runShutdownStep("MUS socket", () -> {
+            if (musServer != null) {
+                musServer.dispose();
+            }
+        });
+        runShutdownStep("RCON socket", () -> {
+            if (rconServer != null) {
+                rconServer.dispose();
+            }
+        });
+
+        if (GameScheduler.hasInstance()) {
+            runShutdownStep("game scheduler", () -> GameScheduler.getInstance().shutdown());
+        }
+
+        runShutdownStep("database pool", Storage::dispose);
+    }
+
+    private static void configureResourceLeakDetector() {
+        String configuredLevel = ServerConfiguration.getStringOrDefault(
+                "netty.leak.detector.level",
+                ServerConfiguration.getBoolean("debug") ? "advanced" : "simple"
+        );
+
+        try {
+            ResourceLeakDetector.Level level = ResourceLeakDetector.Level.valueOf(configuredLevel.trim().toUpperCase());
+            ResourceLeakDetector.setLevel(level);
+            log.info("Netty resource leak detector level set to {}", level);
+        } catch (IllegalArgumentException ex) {
+            ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.SIMPLE);
+            log.warn("Invalid netty.leak.detector.level '{}', falling back to SIMPLE", configuredLevel);
+        }
+    }
+
+    private static void logStartupError(Exception e) {
+        if (log != null) {
+            log.error("Kepler failed to start", e);
+            return;
+        }
+
+        e.printStackTrace();
+    }
+
+    private static void runShutdownStep(String step, ShutdownOperation operation) {
+        try {
+            operation.run();
+        } catch (Exception e) {
+            if (log != null) {
+                log.error("Error while shutting down {}", step, e);
+            } else {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @FunctionalInterface
+    private interface ShutdownOperation {
+        void run() throws Exception;
     }
 
     /**

@@ -34,7 +34,8 @@ public class ServerConfiguration {
      * @return value as boolean
      */
     public static boolean getBoolean(String key) {
-        String val = config.getOrDefault(key, "false");
+        String envValue = getEnvOrNull(key);
+        String val = envValue != null ? envValue : config.getOrDefault(key, "false");
 
         if (val.equalsIgnoreCase("true")) {
             return true;
