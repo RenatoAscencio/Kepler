@@ -18,7 +18,7 @@ public class DefaultConfigWriter implements ConfigWriter {
         config.put("rcon.bind", "127.0.0.1");
         config.put("rcon.port", "12309");
 
-        config.put("log.connections", "true");
+        config.put("log.connections", "false");
         config.put("log.sent.packets", "false");
         config.put("log.received.packets", "false");
 
@@ -54,6 +54,7 @@ public class DefaultConfigWriter implements ConfigWriter {
         writer.println("mysql.database=" + config.get("mysql.database"));
         writer.println("");
         writer.println("[Logging]");
+        writer.println("log.connections=" + config.get("log.connections"));
         writer.println("log.received.packets=" + config.get("log.received.packets"));
         writer.println("log.sent.packets=" + config.get("log.sent.packets"));
         writer.println("");

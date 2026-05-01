@@ -11,9 +11,16 @@ import org.alexdev.kepler.server.mus.streams.MusTypes;
 import java.util.List;
 
 public class MusNetworkDecoder extends ByteArrayDecoder {
+    private static final int HEADER_LENGTH = 6;
+    private static final int MAX_MESSAGE_SIZE = 1024 * 1024;
 
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
+        if (buffer.readableBytes() < HEADER_LENGTH) {
+            return;
+        }
+
+        buffer.markReaderIndex();
         byte headerTag = buffer.readByte();
         buffer.readByte();
 
@@ -22,6 +29,11 @@ public class MusNetworkDecoder extends ByteArrayDecoder {
         } else {
             MusMessage musMessage = new MusMessage();
             musMessage.setSize(buffer.readInt());
+
+            if (musMessage.getSize() < 0 || musMessage.getSize() > MAX_MESSAGE_SIZE) {
+                ctx.channel().close();
+                return;
+            }
 
             if (buffer.readableBytes() < musMessage.getSize()) {
                 buffer.resetReaderIndex();
@@ -41,7 +53,7 @@ public class MusNetworkDecoder extends ByteArrayDecoder {
                 receivers[i] = MusUtil.readEvenPaddedString(body);
             }
 
-            if (musMessage.getSubject().equals("Logon")) {
+            if ("Logon".equals(musMessage.getSubject())) {
                 // Read in remaining data
                 byte[] tmpBytes = new byte[body.readableBytes()];
                 body.readBytes(tmpBytes);

@@ -3,8 +3,8 @@ package org.alexdev.kepler.server.netty;
 import io.netty.channel.Channel;
 import org.alexdev.kepler.messages.types.MessageComposer;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 public class NettyPlayerNetwork {
     private int port;
@@ -14,7 +14,7 @@ public class NettyPlayerNetwork {
     public NettyPlayerNetwork(Channel channel, int connectionId) {
         this.channel = channel;
         this.connectionId = connectionId;
-        this.port = Integer.parseInt(channel.localAddress().toString().split(":")[1]);
+        this.port = getPort(channel.localAddress());
     }
 
     public Channel getChannel() {
@@ -46,8 +46,25 @@ public class NettyPlayerNetwork {
     }
 
     public static String getIpAddress(Channel channel) {
-        return channel.remoteAddress().toString().replace("/", "").split(":")[0];
+        SocketAddress remoteAddress = channel.remoteAddress();
+
+        if (remoteAddress instanceof InetSocketAddress inetSocketAddress) {
+            return inetSocketAddress.getAddress().getHostAddress();
+        }
+
+        return remoteAddress != null ? remoteAddress.toString().replace("/", "").split(":")[0] : "";
     }
 
+    private static int getPort(SocketAddress localAddress) {
+        if (localAddress instanceof InetSocketAddress inetSocketAddress) {
+            return inetSocketAddress.getPort();
+        }
 
+        if (localAddress == null) {
+            return 0;
+        }
+
+        String[] addressParts = localAddress.toString().split(":");
+        return Integer.parseInt(addressParts[addressParts.length - 1]);
+    }
 }

@@ -40,6 +40,14 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
         this.server = musServer;
     }
 
+    private static int parseInteger(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ex) {
+            return -1;
+        }
+    }
+
     @Override
     public void channelRegistered(ChannelHandlerContext ctx) {
         if (!this.server.getChannels().add(ctx.channel()) || Kepler.isShuttingdown()) {
@@ -56,7 +64,6 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-        this.server.getConnectionIds().getAndDecrement(); // Decrement because we don't want it to reach Integer.MAX_VALUE
         this.server.getChannels().remove(ctx.channel());
 
         //log.info("[MUS] Disconnection from {}", ctx.channel().remoteAddress().toString().replace("/", "").split(":")[0]);
@@ -66,8 +73,9 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
     public void channelRead0(ChannelHandlerContext ctx, MusMessage message) {
         MusMessage reply;
         MusClient client = ctx.channel().attr(MUS_CLIENT_KEY).get();
+        String subject = message != null ? message.getSubject() : null;
 
-        if (client == null) {
+        if (client == null || subject == null) {
             ctx.close();
             return;
         }
@@ -75,7 +83,7 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
         try {
             //log.info("[MUS] Message from {}: {}", ctx.channel().remoteAddress().toString().replace("/", "").split(":")[0], message.toString());
 
-            if (message.getSubject().equals("Logon")) {
+            if ("Logon".equals(subject)) {
                 reply = new MusMessage();
                 reply.setSubject("Logon");
                 reply.setContentType(MusTypes.String);
@@ -89,13 +97,25 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
                 ctx.channel().writeAndFlush(reply);
             }
 
-            if (message.getSubject().equals("LOGIN")) {
-                String[] credentials = message.getContentString().split(" ", 2);
+            if ("LOGIN".equals(subject)) {
+                String content = message.getContentString();
+
+                if (content == null || content.isBlank()) {
+                    ctx.channel().close();
+                    return;
+                }
+
+                String[] credentials = content.split(" ", 2);
 
                 Player player = null;
                 int userId = -1;
 
                 if (!StringUtils.isNumeric(credentials[0])) {
+                    if (credentials.length < 2 || credentials[1].isBlank()) {
+                        ctx.channel().close();
+                        return;
+                    }
+
                     String username = credentials[0];
                     String password = credentials[1];
 
@@ -108,7 +128,13 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
                         player = null;
                     }
                 } else {
-                    userId = Integer.valueOf(credentials[0]);
+                    userId = parseInteger(credentials[0]);
+
+                    if (userId < 1) {
+                        ctx.channel().close();
+                        return;
+                    }
+
                     player = PlayerManager.getInstance().getPlayerById(userId);
                 }
 
@@ -122,13 +148,15 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
                 }
             }
 
-            if (message.getSubject().equals("PHOTOTXT")) {
-                if (client.getUserId() > 0) {
-                    client.setPhotoText(StringUtil.filterInput(message.getContentString().substring(1), true));
+            if ("PHOTOTXT".equals(subject)) {
+                String content = message.getContentString();
+
+                if (client.getUserId() > 0 && content != null && content.length() > 1) {
+                    client.setPhotoText(StringUtil.filterInput(content.substring(1), true));
                 }
             }
 
-            if (message.getSubject().equals("BINDATA")) {
+            if ("BINDATA".equals(subject)) {
                 Player player = PlayerManager.getInstance().getPlayerById(client.getUserId());
 
                 if (player == null) {
@@ -145,14 +173,23 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
 
                 long timeSeconds = DateUtil.getCurrentTimeSeconds();
 
+                if (message.getContentPropList() == null) {
+                    return;
+                }
+
                 String time = message.getContentPropList().getPropAsString("time");
                 Integer cs = message.getContentPropList().getPropAsInt("cs");
                 byte[] image = message.getContentPropList().getPropAsBytes("image");
                 String photoText = client.getPhotoText();
+                var photoDefinition = ItemManager.getInstance().getDefinitionBySprite("photo");
+
+                if (photoDefinition == null || image == null || cs == null) {
+                    return;
+                }
 
                 Item photo = new Item();
                 photo.setOwnerId(client.getUserId());
-                photo.setDefinitionId(ItemManager.getInstance().getDefinitionBySprite("photo").getId());
+                photo.setDefinitionId(photoDefinition.getId());
                 photo.setCustomData(DateUtil.getDateAsString(timeSeconds) + "\r" + photoText);
                 ItemDao.newItem(photo);
 
@@ -171,8 +208,18 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
                 player.send(new FILM(player.getDetails()));
             }
 
-            if (message.getSubject().equals("GETBINDATA")) {
-                int photoID = Integer.parseInt(message.getContentString().split(" ")[0]);
+            if ("GETBINDATA".equals(subject)) {
+                String content = message.getContentString();
+
+                if (content == null || content.isBlank()) {
+                    return;
+                }
+
+                int photoID = parseInteger(content.split(" ")[0]);
+
+                if (photoID < 1) {
+                    return;
+                }
 
                 Photo photo = PhotoDao.getPhoto(photoID);
 

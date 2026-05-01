@@ -12,6 +12,7 @@ import org.alexdev.kepler.server.netty.NettyPlayerNetwork;
 import org.alexdev.kepler.server.netty.NettyServer;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
 import org.alexdev.kepler.util.config.GameConfiguration;
+import org.alexdev.kepler.util.config.ServerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +47,7 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<NettyRequest>
             if (count >= maxConnectionsPerIp) {
                 log.info("Kicking off connection from " + ipAddress + " to make room for new connection");
                 ctx.channel().close();
+                return;
             }
         }
 
@@ -60,14 +62,13 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<NettyRequest>
 
         player.send(new HELLO());
 
-        //if (ServerConfiguration.getBoolean("log.connections")) {
-        log.info("[{}] Connection from {} ", player.getNetwork().getConnectionId(), NettyPlayerNetwork.getIpAddress(ctx.channel()));
-        //}
+        if (ServerConfiguration.getBoolean("log.connections")) {
+            log.info("[{}] Connection from {} ", player.getNetwork().getConnectionId(), NettyPlayerNetwork.getIpAddress(ctx.channel()));
+        }
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        this.server.getConnectionIds().getAndDecrement(); // Decrement because we don't want it to reach Integer.MAX_VALUE
         this.server.getChannels().remove(ctx.channel());
 
         Player player = ctx.channel().attr(Player.PLAYER_KEY).get();
@@ -75,9 +76,9 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<NettyRequest>
         if (player != null) {
             player.dispose();
 
-            //if (ServerConfiguration.getBoolean("log.connections")) {
-            log.info("[{}] Disconnection from {} ", player.getNetwork().getConnectionId(), NettyPlayerNetwork.getIpAddress(ctx.channel()));
-            //}
+            if (ServerConfiguration.getBoolean("log.connections")) {
+                log.info("[{}] Disconnection from {} ", player.getNetwork().getConnectionId(), NettyPlayerNetwork.getIpAddress(ctx.channel()));
+            }
         }
     }
 
@@ -98,7 +99,8 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<NettyRequest>
 
             MessageHandler.getInstance().handleRequest(player, message);
         } catch (Exception ex) {
-            Log.getErrorLogger().error("Exception occurred when handling (" + message.getHeaderId() + "): ", ex);
+            int headerId = message != null ? message.getHeaderId() : -1;
+            Log.getErrorLogger().error("Exception occurred when handling (" + headerId + "): ", ex);
         }
     }
 

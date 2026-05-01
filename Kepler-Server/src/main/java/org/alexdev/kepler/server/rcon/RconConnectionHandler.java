@@ -48,6 +48,7 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
         if (!this.server.getChannels().add(ctx.channel()) || Kepler.isShuttingdown()) {
             //Log.getErrorLogger().error("Could not accept RCON connection from {}", ctx.channel().remoteAddress().toString().replace("/", "").split(":")[0]);
             ctx.close();
+            return;
         }
 
         //log.info("[RCON] Connection from {}", ctx.channel().remoteAddress().toString().replace("/", "").split(":")[0]);
