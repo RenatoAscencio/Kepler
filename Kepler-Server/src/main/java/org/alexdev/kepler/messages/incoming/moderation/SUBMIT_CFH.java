@@ -14,11 +14,11 @@ public class SUBMIT_CFH implements MessageEvent {
 
         String message = reader.readString();
 
-        if (message.length() == 0) {
+        if (message == null || message.isBlank()) {
             return;
         }
 
-        // TODO: ignore messages that only contains spaces
+        message = message.trim();
 
         // Only allow one call for help per user
         if (CallForHelpManager.getInstance().hasPendingCall(player)) {

@@ -1,13 +1,17 @@
 package org.alexdev.kepler.server.netty.connections;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.alexdev.kepler.Kepler;
+import org.alexdev.kepler.dao.mysql.BanDao;
+import org.alexdev.kepler.game.ban.BanType;
 import org.alexdev.kepler.game.player.Player;
 import org.alexdev.kepler.log.Log;
 import org.alexdev.kepler.messages.MessageHandler;
 import org.alexdev.kepler.messages.outgoing.handshake.HELLO;
+import org.alexdev.kepler.messages.outgoing.moderation.USER_BANNED;
 import org.alexdev.kepler.server.netty.NettyPlayerNetwork;
 import org.alexdev.kepler.server.netty.NettyServer;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
@@ -31,7 +35,14 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<NettyRequest>
         int maxConnectionsPerIp = GameConfiguration.getInstance().getInteger("max.connections.per.ip");
         String ipAddress = NettyPlayerNetwork.getIpAddress(ctx.channel());
 
-        // TODO: IP ban checking
+        var ipBan = BanDao.hasBan(BanType.IP_ADDRESS, ipAddress);
+
+        if (ipBan != null) {
+            log.info("Rejected banned IP address {}", ipAddress);
+            ctx.channel().writeAndFlush(new HELLO());
+            ctx.channel().writeAndFlush(new USER_BANNED(ipBan.getKey())).addListener(ChannelFutureListener.CLOSE);
+            return;
+        }
 
         if (maxConnectionsPerIp > 0) {
             int count = 0;
