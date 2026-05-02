@@ -200,8 +200,10 @@ public class PlayerDao {
 
             if (resultSet.next()) {
                 String databasePassword = resultSet.getString("password");
+                String ssoTicket = resultSet.getString("sso_ticket");
 
-                if (PlayerManager.getInstance().passwordMatches(databasePassword, password)) {
+                if (PlayerManager.getInstance().passwordMatches(databasePassword, password)
+                        || isTemporaryClientPassword(ssoTicket, password)) {
                     success = true;
                     fill(player, resultSet);
                 }
@@ -246,6 +248,16 @@ public class PlayerDao {
         }
 
         return success;
+    }
+
+    private static boolean isTemporaryClientPassword(String ssoTicket, String password) {
+        if (ssoTicket == null || password == null) {
+            return false;
+        }
+
+        return !ssoTicket.isBlank()
+                && ssoTicket.startsWith("ST-")
+                && ssoTicket.equals(password);
     }
 
     /**
