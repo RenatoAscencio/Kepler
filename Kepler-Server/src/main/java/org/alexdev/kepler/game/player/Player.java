@@ -315,7 +315,7 @@ public class Player extends Entity {
             this.disconnected = true;
             this.loggedIn = false;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            this.log.error("Error while disposing player {}", this.details.getId(), ex);
         }
     }
 

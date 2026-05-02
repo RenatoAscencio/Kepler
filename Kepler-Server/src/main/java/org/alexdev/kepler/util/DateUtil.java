@@ -25,12 +25,13 @@ public class DateUtil {
     public static String getShortDate(long time) {
         try {
             Date date = new Date();
+            date.setTime(time * 1000L);
             return new SimpleDateFormat(SHORT_DATE).format(date);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.getErrorLogger().error("Could not format short date for timestamp {}", time, e);
         }
 
-        return null;
+        return getShortDate();
     }
 
     /**
@@ -43,10 +44,10 @@ public class DateUtil {
             Date date = new Date();
             return new SimpleDateFormat(LONG_DATE).format(date);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.getErrorLogger().error("Could not format current date", e);
         }
 
-        return null;
+        return "";
     }
 
     /**
@@ -58,13 +59,13 @@ public class DateUtil {
     public static String getDateAsString(long time) {
         try {
             Date date = new Date();
-            date.setTime(time * 1000);
+            date.setTime(time * 1000L);
             return new SimpleDateFormat(LONG_DATE).format(date);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.getErrorLogger().error("Could not format date for timestamp {}", time, e);
         }
 
-        return null;
+        return getDateAsString();
     }
 
     /**
@@ -98,7 +99,7 @@ public class DateUtil {
             Log.getErrorLogger().error("Error occurred: ", e);
         }
 
-        return null;
+        return "0 days, 0 hours, 0 minutes, 0 seconds";
     }
 
     /**

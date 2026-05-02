@@ -9,6 +9,7 @@ import org.alexdev.kepler.game.item.interactors.InteractionType;
 import org.alexdev.kepler.game.pets.PetManager;
 import org.alexdev.kepler.game.player.Player;
 import org.alexdev.kepler.game.player.PlayerRank;
+import org.alexdev.kepler.log.Log;
 import org.alexdev.kepler.messages.outgoing.user.currencies.FILM;
 import org.alexdev.kepler.util.DateUtil;
 import org.alexdev.kepler.util.StringUtil;
@@ -43,8 +44,18 @@ public class CatalogueManager {
         } else {
             for (CataloguePackage cataloguePackage : item.getPackages()) {
                 for (int i = 0; i < cataloguePackage.getAmount(); i++) {
-                    Item newItem = purchase(player, cataloguePackage.getDefinition(), null, cataloguePackage.getSpecialSpriteId(), overrideName, timestamp);
-                    itemsBought.add(newItem);
+                    ItemDefinition definition = cataloguePackage.getDefinition();
+
+                    if (definition == null) {
+                        Log.getErrorLogger().error("Skipping package item {} because definition {} does not exist", item.getSaleCode(), cataloguePackage.getDefinitionId());
+                        continue;
+                    }
+
+                    Item newItem = purchase(player, definition, null, cataloguePackage.getSpecialSpriteId(), overrideName, timestamp);
+
+                    if (newItem != null) {
+                        itemsBought.add(newItem);
+                    }
                 }
             }
         }
@@ -200,8 +211,19 @@ public class CatalogueManager {
      * @return the item, if successful
      */
     public CatalogueItem getCatalogueItem(String saleCode) {
+        return this.getCatalogueItem(saleCode, false);
+    }
+
+    /**
+     * Get an item by it's sale code.
+     *
+     * @param saleCode the item sale code identifier
+     * @param includeHidden whether hidden catalogue items should be included
+     * @return the item, if successful
+     */
+    public CatalogueItem getCatalogueItem(String saleCode, boolean includeHidden) {
         for (CatalogueItem catalogueItem : this.catalogueItemList) {
-            if (catalogueItem.isHidden()) {
+            if (!includeHidden && catalogueItem.isHidden()) {
                 continue;
             }
 

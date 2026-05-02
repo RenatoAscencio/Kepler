@@ -3,12 +3,11 @@ package org.alexdev.kepler.game.catalogue;
 import org.alexdev.kepler.game.item.base.ItemBehaviour;
 import org.alexdev.kepler.game.item.base.ItemDefinition;
 import org.alexdev.kepler.game.item.ItemManager;
-import org.alexdev.kepler.game.texts.TextsManager;
+import org.alexdev.kepler.log.Log;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceLoader;
 
 public class CatalogueItem {
     private String saleCode;
@@ -63,7 +62,7 @@ public class CatalogueItem {
         this.packageDescription = packageDescription;
 
         if (this.definition == null && !this.isPackage) {
-            System.out.println("Item (" + this.saleCode + ") has an invalid definition id: " + definitionId);
+            Log.getErrorLogger().warn("Catalogue item {} has an invalid definition id: {}", this.saleCode, definitionId);
         }
     }
 

@@ -7,16 +7,14 @@ import io.netty.handler.codec.MessageToMessageEncoder;
 import org.alexdev.kepler.server.mus.MusUtil;
 import org.alexdev.kepler.server.mus.streams.MusMessage;
 import org.alexdev.kepler.server.mus.streams.MusTypes;
-import org.alexdev.kepler.server.netty.codec.NetworkEncoder;
 import org.alexdev.kepler.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.Buffer;
 import java.util.List;
 
 public class MusNetworkEncoder extends MessageToMessageEncoder<MusMessage> {
-    final private static Logger log = LoggerFactory.getLogger(NetworkEncoder.class);
+    final private static Logger log = LoggerFactory.getLogger(MusNetworkEncoder.class);
 
     @Override
     protected void encode(ChannelHandlerContext ctx, MusMessage msg, List<Object> out) throws Exception {
@@ -51,7 +49,7 @@ public class MusNetworkEncoder extends MessageToMessageEncoder<MusMessage> {
             else if (msg.getContentType() == MusTypes.PropList)
                 MusUtil.writePropList(temporaryBuffer, msg.getContentPropList());
             else
-                System.out.println("Unsupported MusMessage content type " + msg.getContentType() + "!");
+                log.warn("Unsupported MusMessage content type {}", msg.getContentType());
         }
 
         byte[] body = new byte[temporaryBuffer.readableBytes()];

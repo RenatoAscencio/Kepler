@@ -182,7 +182,7 @@ public abstract class Game {
                         beginGame();
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    Log.getErrorLogger().error("Error while preparing {} game {}", gameType, id, ex);
                 }
             }
         };
@@ -420,7 +420,7 @@ public abstract class Game {
                         beginGame();
                     }
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    Log.getErrorLogger().error("Error while restarting {} game {}", gameType, id, ex);
                 }
             }
         };

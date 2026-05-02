@@ -4,6 +4,7 @@ import org.alexdev.kepler.game.pathfinder.Position;
 import org.alexdev.kepler.game.room.mapping.RoomTileState;
 import org.alexdev.kepler.game.room.models.RoomModelTriggerType;
 import org.alexdev.kepler.game.triggers.GenericTrigger;
+import org.alexdev.kepler.log.Log;
 import org.alexdev.kepler.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -39,7 +40,7 @@ public class RoomModel {
             try {
                 this.modelTrigger = RoomModelTriggerType.valueOf(triggerClass.toUpperCase());
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.getErrorLogger().error("Invalid room model trigger '{}' for model '{}'", triggerClass, modelId, e);
             }
         }
 

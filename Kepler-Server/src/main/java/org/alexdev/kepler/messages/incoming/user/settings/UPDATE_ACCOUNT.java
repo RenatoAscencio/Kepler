@@ -54,8 +54,6 @@ public class UPDATE_ACCOUNT implements MessageEvent {
         String newPassword = (String) PlayerManager.getInstance().getRegisterValue(registerValues, "password");
         String email = (String) PlayerManager.getInstance().getRegisterValue(registerValues, "email");
 
-        System.out.println(player.getDetails().getBirthday());
-
         if (!StringUtil.isNullOrEmpty(player.getDetails().getBirthday()) && !player.getDetails().getBirthday().equals(birthday)) {
             player.send(new UPDATE_ACCOUNT_RESPONSE(UPDATE_ACCOUNT_RESPONSE.ResponseType.INCORRECT_BIRTHDAY));
             return;

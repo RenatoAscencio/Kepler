@@ -2,6 +2,7 @@ package org.alexdev.kepler.game.item;
 
 import org.alexdev.kepler.dao.mysql.ItemDao;
 import org.alexdev.kepler.dao.mysql.SongMachineDao;
+import org.alexdev.kepler.game.catalogue.CatalogueItem;
 import org.alexdev.kepler.game.catalogue.CatalogueManager;
 import org.alexdev.kepler.game.item.base.ItemDefinition;
 import org.alexdev.kepler.game.player.Player;
@@ -39,24 +40,32 @@ public class ItemManager {
     public Item createGift(PlayerDetails toPlayer, PlayerDetails fromPlayer, String saleCode, String presentLabel, String extraData) throws Exception {
         String sprite = "present_gen" + ThreadLocalRandom.current().nextInt(1, 7);
         ItemDefinition itemDef = ItemManager.getInstance().getDefinitionBySprite(sprite);
+        CatalogueItem catalogueItem = CatalogueManager.getInstance().getCatalogueItem(saleCode, true);
 
         if (itemDef == null) {
             throw new Exception("Could not create gift, the definition for sprite " + sprite + " doesn't exist");
         }
 
+        if (catalogueItem == null) {
+            throw new Exception("Could not create gift, catalogue item " + saleCode + " doesn't exist");
+        }
+
         Item item = new Item();
         item.setDefinitionId(itemDef.getId());
         item.setOwnerId(toPlayer.getId());
-        item.setCustomData(CatalogueManager.getInstance().getCatalogueItem(saleCode).getId() +
+        String safePresentLabel = presentLabel == null ? "" : presentLabel.replace(Item.PRESENT_DELIMETER, "");
+        String safeExtraData = extraData == null ? "" : extraData.replace(Item.PRESENT_DELIMETER, "");
+        item.setCustomData(catalogueItem.getId() +
                 Item.PRESENT_DELIMETER + fromPlayer.getName() +
-                Item.PRESENT_DELIMETER + presentLabel.replace(Item.PRESENT_DELIMETER, "") + //From Habbo" +
-                Item.PRESENT_DELIMETER + extraData.replace(Item.PRESENT_DELIMETER, "") +
+                Item.PRESENT_DELIMETER + safePresentLabel +
+                Item.PRESENT_DELIMETER + safeExtraData +
                 Item.PRESENT_DELIMETER + DateUtil.getCurrentTimeSeconds());
 
         try {
             ItemDao.newItem(item);
         } catch (SQLException e) {
-            e.printStackTrace();
+            Log.getErrorLogger().error("Could not save gift for player {} with sale code {}", toPlayer.getId(), saleCode, e);
+            throw e;
         }
 
 
