@@ -6,6 +6,7 @@ import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.game.room.managers.RoomTradeManager;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class TRADE_ADDITEM implements MessageEvent {
     @Override
@@ -20,7 +21,13 @@ public class TRADE_ADDITEM implements MessageEvent {
             return;
         }
 
-        int itemId = Integer.parseInt(reader.contents());
+        String contents = reader.contents();
+
+        if (!StringUtils.isNumeric(contents)) {
+            return;
+        }
+
+        int itemId = Integer.parseInt(contents);
         Item inventoryItem = player.getInventory().getItem(itemId);
 
         if (inventoryItem == null) {

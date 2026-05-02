@@ -8,6 +8,7 @@ import org.alexdev.kepler.game.room.RoomManager;
 import org.alexdev.kepler.log.Log;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,7 +17,13 @@ import java.util.List;
 public class DELETEFLAT implements MessageEvent {
     @Override
     public void handle(Player player, NettyRequest reader) throws SQLException {
-        int roomId = Integer.parseInt(reader.contents());
+        String contents = reader.contents();
+
+        if (!StringUtils.isNumeric(contents)) {
+            return;
+        }
+
+        int roomId = Integer.parseInt(contents);
         delete(roomId, player.getDetails().getId());
     }
 

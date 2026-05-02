@@ -4,6 +4,7 @@ import org.alexdev.kepler.game.infobus.InfobusManager;
 import org.alexdev.kepler.game.player.Player;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class VOTE implements MessageEvent {
     @Override
@@ -12,7 +13,12 @@ public class VOTE implements MessageEvent {
             return;
         }
 
-        String vote = reader.contents();;
+        String vote = reader.contents();
+
+        if (!StringUtils.isNumeric(vote)) {
+            return;
+        }
+
         InfobusManager.getInstance().addVote(Integer.parseInt(vote));
     }
 }

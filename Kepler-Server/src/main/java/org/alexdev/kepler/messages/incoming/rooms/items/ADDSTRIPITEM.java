@@ -7,6 +7,7 @@ import org.alexdev.kepler.game.player.Player;
 import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class ADDSTRIPITEM implements MessageEvent {
     @Override
@@ -23,6 +24,10 @@ public class ADDSTRIPITEM implements MessageEvent {
 
         String content = reader.contents();
         String[] data = content.split(" ");
+
+        if (data.length < 3 || !StringUtils.isNumeric(data[2])) {
+            return;
+        }
 
         int itemId = Integer.parseInt(data[2]);
 

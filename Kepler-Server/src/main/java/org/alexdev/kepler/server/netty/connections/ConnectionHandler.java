@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.DecoderException;
 import org.alexdev.kepler.Kepler;
 import org.alexdev.kepler.dao.mysql.BanDao;
 import org.alexdev.kepler.game.ban.BanType;
@@ -117,10 +118,17 @@ public class ConnectionHandler extends SimpleChannelInboundHandler<NettyRequest>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        //if (cause instanceof Exception) {
-        if (!(cause instanceof IOException)) {
-            Log.getErrorLogger().error("Netty error occurred: ", cause); //ctx.close();
+        if (cause instanceof IOException) {
+            ctx.close();
+            return;
         }
-        //}
+
+        if (cause instanceof DecoderException || cause instanceof IllegalArgumentException) {
+            log.warn("Closing malformed client connection from {}: {}", NettyPlayerNetwork.getIpAddress(ctx.channel()), cause.getMessage());
+        } else {
+            Log.getErrorLogger().error("Netty error occurred: ", cause);
+        }
+
+        ctx.close();
     }
 }

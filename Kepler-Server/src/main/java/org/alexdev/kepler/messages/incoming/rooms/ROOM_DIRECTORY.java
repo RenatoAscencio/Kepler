@@ -15,7 +15,13 @@ import org.alexdev.kepler.server.netty.streams.NettyRequest;
 public class ROOM_DIRECTORY implements MessageEvent {
     @Override
     public void handle(Player player, NettyRequest reader) {
-        char is_public = reader.contents().charAt(0);
+        String contents = reader.contents();
+
+        if (contents.isEmpty()) {
+            return;
+        }
+
+        char is_public = contents.charAt(0);
 
         if (is_public != 'A') {
             player.send(new OPEN_CONNECTION());

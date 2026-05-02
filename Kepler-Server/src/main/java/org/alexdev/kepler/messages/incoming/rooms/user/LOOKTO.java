@@ -10,6 +10,7 @@ import org.alexdev.kepler.game.room.enums.StatusType;
 import org.alexdev.kepler.messages.incoming.navigator.RECOMMENDED_ROOMS;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class LOOKTO implements MessageEvent {
     @Override
@@ -32,6 +33,10 @@ public class LOOKTO implements MessageEvent {
         //Room room = player.getRoomUser().getRoom();
 
         String[] data = reader.contents().split(" ");
+
+        if (data.length < 2 || !StringUtils.isNumeric(data[0]) || !StringUtils.isNumeric(data[1])) {
+            return;
+        }
 
         Position lookDirection = new Position(
                 Integer.parseInt(data[0]),

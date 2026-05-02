@@ -9,6 +9,8 @@ import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.messages.outgoing.rooms.items.MOVE_FLOORITEM;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 public class MOVESTUFF implements MessageEvent {
     @Override
@@ -25,6 +27,14 @@ public class MOVESTUFF implements MessageEvent {
 
         String content = reader.contents();
         String[] data = content.split(" ");
+
+        if (data.length < 4 ||
+                !StringUtils.isNumeric(data[0]) ||
+                !NumberUtils.isParsable(data[1]) ||
+                !NumberUtils.isParsable(data[2]) ||
+                !NumberUtils.isParsable(data[3])) {
+            return;
+        }
 
         int itemId = Integer.parseInt(data[0]);
         Item item = room.getItemManager().getById(itemId);

@@ -7,11 +7,16 @@ import org.alexdev.kepler.game.room.RoomManager;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
 import org.alexdev.kepler.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 
 public class UPDATEFLAT implements MessageEvent {
     @Override
     public void handle(Player player, NettyRequest reader) {
         String[] data = reader.contents().split("/");
+
+        if (data.length < 4 || !StringUtils.isNumeric(data[0]) || !StringUtils.isNumeric(data[3])) {
+            return;
+        }
 
         int roomId = Integer.parseInt(data[0]);
 

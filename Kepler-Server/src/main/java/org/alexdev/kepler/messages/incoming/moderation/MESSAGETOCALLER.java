@@ -8,6 +8,7 @@ import org.alexdev.kepler.game.player.PlayerManager;
 import org.alexdev.kepler.messages.outgoing.moderation.CRY_REPLY;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class MESSAGETOCALLER implements MessageEvent {
     @Override
@@ -18,8 +19,18 @@ public class MESSAGETOCALLER implements MessageEvent {
         }
 
         // The inconsistent v21 client sends the call ID non-VL64 encoded :/
-        int callId = Integer.parseInt(reader.readString());
+        String callIdValue = reader.readString();
+
+        if (!StringUtils.isNumeric(callIdValue)) {
+            return;
+        }
+
+        int callId = Integer.parseInt(callIdValue);
         String message = reader.readString();
+
+        if (message == null || message.isBlank()) {
+            return;
+        }
 
         // Retrieve call for help by ID provided by client
         CallForHelp cfh = CallForHelpManager.getInstance().getCall(callId);

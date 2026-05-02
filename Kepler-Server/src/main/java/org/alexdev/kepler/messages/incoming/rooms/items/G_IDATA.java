@@ -24,7 +24,7 @@ public class G_IDATA implements MessageEvent {
             return;
         }
 
-        int itemId = Integer.parseInt(reader.contents());
+        int itemId = Integer.parseInt(contents);
 
         Item item = room.getItemManager().getById(itemId);
 

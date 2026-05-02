@@ -6,6 +6,7 @@ import org.alexdev.kepler.game.fuserights.Fuseright;
 import org.alexdev.kepler.game.player.Player;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class PICK_CALLFORHELP implements MessageEvent {
     @Override
@@ -14,7 +15,13 @@ public class PICK_CALLFORHELP implements MessageEvent {
             return;
         }
 
-        int callId = Integer.parseInt(reader.readString());
+        String callIdValue = reader.readString();
+
+        if (!StringUtils.isNumeric(callIdValue)) {
+            return;
+        }
+
+        int callId = Integer.parseInt(callIdValue);
         CallForHelp cfh = CallForHelpManager.getInstance().getCall(callId);
 
         if (cfh == null) {

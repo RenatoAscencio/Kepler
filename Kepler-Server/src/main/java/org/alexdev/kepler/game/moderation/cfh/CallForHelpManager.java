@@ -115,6 +115,10 @@ public class CallForHelpManager {
      * @param newCategory the new category
      */
     public void changeCategory(CallForHelp cfh, int newCategory) {
+        if (cfh == null) {
+            return;
+        }
+
         if (!this.callsForHelp.containsKey(cfh.getCryId())) {
             return;
         }

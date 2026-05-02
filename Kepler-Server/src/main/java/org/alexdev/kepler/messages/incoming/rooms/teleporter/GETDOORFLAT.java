@@ -12,6 +12,7 @@ import org.alexdev.kepler.messages.outgoing.rooms.items.BROADCAST_TELEPORTER;
 import org.alexdev.kepler.messages.outgoing.rooms.items.TELEPORTER_INIT;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +25,13 @@ public class GETDOORFLAT implements MessageEvent {
             return;
         }
 
-        int itemId = Integer.parseInt(reader.contents());
+        String contents = reader.contents();
+
+        if (!StringUtils.isNumeric(contents)) {
+            return;
+        }
+
+        int itemId = Integer.parseInt(contents);
         Item item = room.getItemManager().getById(itemId);
 
         if (item == null || !item.hasBehaviour(ItemBehaviour.TELEPORTER)) {

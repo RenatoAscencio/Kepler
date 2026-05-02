@@ -7,6 +7,7 @@ import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.messages.outgoing.pets.PETSTAT;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class GETPETSTAT implements MessageEvent {
     @Override
@@ -18,8 +19,11 @@ public class GETPETSTAT implements MessageEvent {
         Room room = player.getRoomUser().getRoom();
         String[] petData = reader.readString().split(Character.toString((char)4));
 
+        if (petData.length < 2 || !StringUtils.isNumeric(petData[0])) {
+            return;
+        }
+
         int petId = Integer.parseInt(petData[0]);
-        String petName = petData[1];
 
         Pet pet = (Pet) room.getEntityManager().getByInstanceId(petId);
 

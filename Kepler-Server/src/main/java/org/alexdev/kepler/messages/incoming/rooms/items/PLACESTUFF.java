@@ -47,6 +47,10 @@ public class PLACESTUFF implements MessageEvent {
         }
 
         if (item.hasBehaviour(ItemBehaviour.WALL_ITEM)) {
+            if (data.length < 2) {
+                return;
+            }
+
             String wallPosition = content.substring(data[0].length() + 1);
 
             if (item.hasBehaviour(ItemBehaviour.POST_IT)) {
@@ -83,9 +87,16 @@ public class PLACESTUFF implements MessageEvent {
 
             item.setWallPosition(wallPosition);
         } else {
+            if (data.length < 6 ||
+                    !StringUtils.isNumeric(data[1]) ||
+                    !StringUtils.isNumeric(data[2]) ||
+                    !StringUtils.isNumeric(data[5])) {
+                return;
+            }
+
             int x = Integer.parseInt(data[1]);
             int y = Integer.parseInt(data[2]);
-            int rotation = rotation = Integer.parseInt(data[5]);
+            int rotation = Integer.parseInt(data[5]);
 
             if (item.hasBehaviour(ItemBehaviour.REDIRECT_ROTATION_0)) {
                 rotation = 0;

@@ -11,6 +11,7 @@ import org.alexdev.kepler.messages.outgoing.rooms.items.BROADCAST_TELEPORTER;
 import org.alexdev.kepler.messages.outgoing.rooms.user.USER_STATUSES;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -28,6 +29,11 @@ public class GOVIADOOR implements MessageEvent {
         }
 
         String[] data = reader.contents().split("/");
+
+        if (data.length < 2 || !StringUtils.isNumeric(data[0]) || !StringUtils.isNumeric(data[1])) {
+            player.getRoomUser().setAuthenticateTelporterId(-1);
+            return;
+        }
 
         int roomId = Integer.parseInt(data[0]);
         int itemId = Integer.parseInt(data[1]);

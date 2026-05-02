@@ -8,6 +8,7 @@ import org.alexdev.kepler.game.room.enums.StatusType;
 import org.alexdev.kepler.game.room.managers.RoomTradeManager;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 public class TRADE_OPEN implements MessageEvent {
     @Override
@@ -26,7 +27,13 @@ public class TRADE_OPEN implements MessageEvent {
             return;
         }
 
-        int instanceId = Integer.parseInt(reader.contents());
+        String contents = reader.contents();
+
+        if (!StringUtils.isNumeric(contents)) {
+            return;
+        }
+
+        int instanceId = Integer.parseInt(contents);
         Entity targetPartner = room.getEntityManager().getByInstanceId(instanceId);
 
         if (targetPartner == null) {
