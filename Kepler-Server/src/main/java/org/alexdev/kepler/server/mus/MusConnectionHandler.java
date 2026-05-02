@@ -2,6 +2,7 @@ package org.alexdev.kepler.server.mus;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.TooLongFrameException;
 import io.netty.util.AttributeKey;
 import org.alexdev.kepler.Kepler;
 import org.alexdev.kepler.dao.mysql.CurrencyDao;
@@ -248,10 +249,15 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        if (cause instanceof Exception) {
-            if (!(cause instanceof IOException)) {
-                Log.getErrorLogger().error("[MUS] Netty error occurred: ", cause);
-            }
+        if (cause instanceof IOException) {
+            ctx.close();
+            return;
+        }
+
+        if (cause instanceof TooLongFrameException || cause instanceof IllegalArgumentException) {
+            log.warn("[MUS] Closing malformed connection from {}: {}", ctx.channel().remoteAddress(), cause.getMessage());
+        } else if (cause instanceof Exception) {
+            Log.getErrorLogger().error("[MUS] Netty error occurred: ", cause);
         }
 
         ctx.close();
