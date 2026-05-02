@@ -8,6 +8,7 @@ import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.messages.outgoing.rooms.FLATPROPERTY;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.SQLException;
 
@@ -25,13 +26,27 @@ public class FLATPROPBYITEM implements MessageEvent {
         }
 
         String contents = reader.contents();
-        String property = contents.split("/")[0];
+        String[] data = contents.split("/", 2);
 
-        int itemId = Integer.parseInt(contents.split("/")[1]);
+        if (data.length < 2 || !StringUtils.isNumeric(data[1])) {
+            return;
+        }
+
+        String property = data[0];
+
+        if (!property.equals("wallpaper") && !property.equals("floor")) {
+            return;
+        }
+
+        int itemId = Integer.parseInt(data[1]);
 
         Item item = player.getInventory().getItem(itemId);
 
         if (item == null) {
+            return;
+        }
+
+        if (!StringUtils.isNumeric(item.getCustomData())) {
             return;
         }
 

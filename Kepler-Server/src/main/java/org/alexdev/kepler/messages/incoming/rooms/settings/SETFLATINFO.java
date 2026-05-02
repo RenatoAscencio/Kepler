@@ -7,6 +7,7 @@ import org.alexdev.kepler.game.room.RoomManager;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
 import org.alexdev.kepler.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 
 public class SETFLATINFO implements MessageEvent {
     @Override
@@ -17,7 +18,13 @@ public class SETFLATINFO implements MessageEvent {
             contents = contents.substring(1);
         }
 
-        int roomId = Integer.parseInt(contents.split("/")[0]);
+        String[] roomData = contents.split("/", 2);
+
+        if (roomData.length == 0 || !StringUtils.isNumeric(roomData[0])) {
+            return;
+        }
+
+        int roomId = Integer.parseInt(roomData[0]);
 
         Room room = RoomManager.getInstance().getRoomById(roomId);
 
@@ -46,10 +53,18 @@ public class SETFLATINFO implements MessageEvent {
             }
 
             if (key.startsWith("allsuperuser")) {
+                if (!StringUtils.isNumeric(value)) {
+                    continue;
+                }
+
                 room.getData().setSuperUsers(Integer.parseInt(value) == 1);
             }
 
             if (key.startsWith("maxvisitors")) {
+                if (!StringUtils.isNumeric(value)) {
+                    continue;
+                }
+
                 int maxVisitors = Integer.parseInt(value);
 
                 if (maxVisitors < 10 || maxVisitors > 50) {

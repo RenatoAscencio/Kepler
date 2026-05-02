@@ -23,6 +23,10 @@ public class CARRYDRINK implements MessageEvent {
             if (StringUtils.isNumeric(contents)) {
                 RoomTile roomTile = player.getRoomUser().getRoom().getMapping().getTile(player.getRoomUser().getPosition().getSquareInFront());
 
+                if (roomTile == null) {
+                    return;
+                }
+
                 if (roomTile.getItems().stream().anyMatch(item -> item.getDefinition().getSprite().equals("arabian_teamk"))) {
                     contents = String.valueOf(1);
                 }
@@ -34,6 +38,10 @@ public class CARRYDRINK implements MessageEvent {
         } else {
             if (player.getRoomUser().getLastItemInteraction() == null) {
                 RoomTile roomTile = player.getRoomUser().getRoom().getMapping().getTile(player.getRoomUser().getPosition().getSquareInFront());
+
+                if (roomTile == null) {
+                    return;
+                }
 
                 if (roomTile.getItems().stream().anyMatch(item -> item.getDefinition().getInteractionType() == InteractionType.VENDING_MACHINE)) {
                     player.getRoomUser().setLastItemInteraction(roomTile.getItems().stream().filter(item -> item.getDefinition().getInteractionType() == InteractionType.VENDING_MACHINE).findFirst().orElse(null));
@@ -51,6 +59,10 @@ public class CARRYDRINK implements MessageEvent {
             }
 
             if (!item.getTile().getPosition().touches(player.getRoomUser().getTile().getPosition())) {
+                return;
+            }
+
+            if (item.getDefinition().getDrinkIds().length == 0) {
                 return;
             }
 

@@ -8,6 +8,7 @@ import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
 import org.alexdev.kepler.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 
 public class SETITEMDATA implements MessageEvent {
     @Override
@@ -24,11 +25,22 @@ public class SETITEMDATA implements MessageEvent {
 
         String contents = reader.contents();
 
-        int itemId = Integer.parseInt(contents.substring(0, contents.indexOf('/')));
-        int itemIdLength = String.valueOf(itemId).length();
+        int delimiterIndex = contents.indexOf('/');
 
-        String colour = contents.substring(itemIdLength + 1).substring(0, 6);
-        String newMessage = StringUtil.filterInput(contents.substring(itemIdLength + 8), false);
+        if (delimiterIndex <= 0 || contents.length() < delimiterIndex + 8) {
+            return;
+        }
+
+        String itemIdString = contents.substring(0, delimiterIndex);
+
+        if (!StringUtils.isNumeric(itemIdString)) {
+            return;
+        }
+
+        int itemId = Integer.parseInt(itemIdString);
+
+        String colour = contents.substring(delimiterIndex + 1, delimiterIndex + 7);
+        String newMessage = StringUtil.filterInput(contents.substring(delimiterIndex + 8), false);
 
         if (!colour.equals("FFFFFF") &&
                 !colour.equals("FFFF33") &&

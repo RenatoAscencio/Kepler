@@ -26,8 +26,14 @@ public class SETSTUFFDATA implements MessageEvent {
 
         Room room = player.getRoomUser().getRoom();
 
-        int itemId = Integer.parseInt(reader.readString());
+        String itemIdString = reader.readString();
         String itemData = reader.readString();
+
+        if (!StringUtils.isNumeric(itemIdString)) {
+            return;
+        }
+
+        int itemId = Integer.parseInt(itemIdString);
 
         Item item = room.getItemManager().getById(itemId);
 
