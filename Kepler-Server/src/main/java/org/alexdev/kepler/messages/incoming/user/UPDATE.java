@@ -19,7 +19,7 @@ public class UPDATE implements MessageEvent {
             var valueId = reader.readBase64();
 
             if (!registerValues.containsKey(valueId)) {
-                return;
+                break;
             }
 
             var value = registerValues.get(valueId);
@@ -55,8 +55,8 @@ public class UPDATE implements MessageEvent {
         }
 
         Object sex = PlayerManager.getInstance().getRegisterValue(registerValues, "sex");
-        if (sex != null) {
-            player.getDetails().setSex(((String) sex).toCharArray()[0]);
+        if (sex != null && ((String) sex).length() > 0) {
+            player.getDetails().setSex(Character.toUpperCase(((String) sex).toCharArray()[0]));
         }
 
         PlayerDao.saveDetails(player.getDetails());
