@@ -194,6 +194,7 @@ If avatar or mission changes fail, check the Kepler logs for:
 
 - `Saved profile update for user ...`
 - `Stopped profile update parse for user ...`
+- `Stopped account update parse for user ...`
 - `Rejected account update for user ...`
 
 Those messages indicate whether the client sent the profile packet and whether

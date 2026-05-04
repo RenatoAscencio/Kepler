@@ -33,7 +33,9 @@ public class UPDATE_ACCOUNT implements MessageEvent {
 
 
             if (!registerValues.containsKey(valueId)) {
-                return;
+                log.info("Stopped account update parse for user {} at unknown register field {}",
+                        player.getDetails().getId(), valueId);
+                break;
             }
 
             var value = registerValues.get(valueId);
