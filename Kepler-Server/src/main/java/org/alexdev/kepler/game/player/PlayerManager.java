@@ -297,6 +297,10 @@ public class PlayerManager {
      * @return true, if success
      */
     public boolean passwordMatches(String databasePassword, String enteredPassword) {
+        if (databasePassword == null || enteredPassword == null) {
+            return false;
+        }
+
         return Kepler.getPasswordEncoder().matches(enteredPassword, databasePassword);
     }
 

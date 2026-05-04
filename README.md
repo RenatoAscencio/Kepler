@@ -173,6 +173,32 @@ docker compose down && docker volume rm kepler-mariadb
 
 You can now start Kepler again, database will be wiped out !
 
+## HabboP production notes
+
+### Launcher SSO and profile editing
+
+HabboP uses the Laravel CMS to generate one-time `sso_ticket` values for the
+launcher. The launcher must keep `pIsSsoLogin = TRUE` so the client enters with
+SSO and does not show the legacy password login screen.
+
+Kepler still clears `users.sso_ticket` after login when
+`reset.sso.after.login=true`; keep that enabled to prevent ticket replay. To
+support the old v14 profile/account screens after the database ticket is
+cleared, the server stores the accepted SSO ticket only in the in-memory
+`PlayerDetails` object for that connection. Packet 44 (`UPDATE`) saves avatar,
+mission and gender for the logged-in session. Packet 149 (`UPDATE_ACCOUNT`) can
+authenticate with either the real password or the in-memory SSO session token,
+without persisting that token again.
+
+If avatar or mission changes fail, check the Kepler logs for:
+
+- `Saved profile update for user ...`
+- `Stopped profile update parse for user ...`
+- `Rejected account update for user ...`
+
+Those messages indicate whether the client sent the profile packet and whether
+the server accepted the profile/account authentication path.
+
 ## License
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.

@@ -47,6 +47,10 @@ public class PlayerDetails {
     private boolean soundEnabled;
     private boolean tutorialFinished;
 
+    // Client session auth
+    private boolean ssoAuthenticated;
+    private String profileAuthToken;
+
     // Timestamps
     private long nextHandout;
     private long lastOnline;
@@ -131,6 +135,27 @@ public class PlayerDetails {
         this.poolFigure = "";
         this.motto = motto;
         this.sex = sex.toLowerCase().equals("f") ? 'F' : 'M';
+    }
+
+    public void markSsoAuthenticated(String profileAuthToken) {
+        this.ssoAuthenticated = true;
+        this.profileAuthToken = profileAuthToken;
+    }
+
+    public void clearSessionAuthentication() {
+        this.ssoAuthenticated = false;
+        this.profileAuthToken = null;
+    }
+
+    public boolean isSsoAuthenticated() {
+        return ssoAuthenticated;
+    }
+
+    public boolean matchesProfileAuthToken(String token) {
+        return this.ssoAuthenticated
+                && this.profileAuthToken != null
+                && token != null
+                && this.profileAuthToken.equals(token);
     }
 
     public void loadBadges() {

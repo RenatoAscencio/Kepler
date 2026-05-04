@@ -163,6 +163,7 @@ public class PlayerDao {
 
             if (resultSet.next()) {
                 fill(player.getDetails(), resultSet);
+                player.getDetails().markSsoAuthenticated(ssoTicket);
                 success = true;
             }
 
@@ -201,11 +202,18 @@ public class PlayerDao {
             if (resultSet.next()) {
                 String databasePassword = resultSet.getString("password");
                 String ssoTicket = resultSet.getString("sso_ticket");
+                boolean temporaryClientPassword = isTemporaryClientPassword(ssoTicket, password);
 
                 if (PlayerManager.getInstance().passwordMatches(databasePassword, password)
-                        || isTemporaryClientPassword(ssoTicket, password)) {
+                        || temporaryClientPassword) {
                     success = true;
                     fill(player, resultSet);
+
+                    if (temporaryClientPassword) {
+                        player.markSsoAuthenticated(password);
+                    } else {
+                        player.clearSessionAuthentication();
+                    }
                 }
             }
         } catch (Exception e) {

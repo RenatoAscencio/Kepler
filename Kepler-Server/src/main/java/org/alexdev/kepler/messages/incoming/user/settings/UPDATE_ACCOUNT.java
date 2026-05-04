@@ -10,10 +10,13 @@ import org.alexdev.kepler.messages.outgoing.user.settings.UPDATE_ACCOUNT_RESPONS
 import org.alexdev.kepler.messages.types.MessageEvent;
 import org.alexdev.kepler.server.netty.streams.NettyRequest;
 import org.alexdev.kepler.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 
 public class UPDATE_ACCOUNT implements MessageEvent {
+    private static final Logger log = LoggerFactory.getLogger(UPDATE_ACCOUNT.class);
 
     @Override
     public void handle(Player player, NettyRequest reader) throws Exception {
@@ -59,7 +62,9 @@ public class UPDATE_ACCOUNT implements MessageEvent {
             return;
         }
 
-        if (!PlayerDao.login(player.getDetails().getName(), oldPassword)) {
+        if (!canAuthenticateProfileChange(player, oldPassword)) {
+            log.info("Rejected account update for user {}: invalid old password (ssoSession={})",
+                    player.getDetails().getId(), player.getDetails().isSsoAuthenticated());
             player.send(new UPDATE_ACCOUNT_RESPONSE(UPDATE_ACCOUNT_RESPONSE.ResponseType.INCORRECT_PASSWORD));
             return;
         }
@@ -99,5 +104,10 @@ public class UPDATE_ACCOUNT implements MessageEvent {
 
             // change birthday and password
         }*/
+    }
+
+    private boolean canAuthenticateProfileChange(Player player, String oldPassword) {
+        return player.getDetails().matchesProfileAuthToken(oldPassword)
+                || PlayerDao.login(player.getDetails().getName(), oldPassword);
     }
 }
