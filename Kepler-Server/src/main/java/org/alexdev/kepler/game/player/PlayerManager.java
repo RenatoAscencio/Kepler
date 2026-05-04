@@ -329,8 +329,13 @@ public class PlayerManager {
 
     public Object getRegisterValue(LinkedHashMap<Integer, RegisterValue> values, String label) {
         for (var value : values.values()) {
-            if (value.getLabel().equals(label))
+            if (value.getLabel().equals(label)) {
+                if (!value.isPresent()) {
+                    return null;
+                }
+
                 return value.getDataType() == RegisterDataType.STRING ? value.getValue() : value.getFlag();
+            }
         }
 
         return null;
