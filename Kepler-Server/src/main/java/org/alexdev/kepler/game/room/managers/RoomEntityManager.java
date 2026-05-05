@@ -14,6 +14,7 @@ import org.alexdev.kepler.game.item.Item;
 import org.alexdev.kepler.game.item.interactors.types.TeleportInteractor;
 import org.alexdev.kepler.game.item.public_items.PublicItemParser;
 import org.alexdev.kepler.game.pathfinder.Position;
+import org.alexdev.kepler.game.navigator.NavigatorManager;
 import org.alexdev.kepler.game.player.Player;
 import org.alexdev.kepler.game.room.Room;
 import org.alexdev.kepler.game.room.RoomManager;
@@ -235,6 +236,7 @@ public class RoomEntityManager {
 
         // Save increased visitor count of this room
         RoomDao.saveVisitors(this.room);
+        NavigatorManager.getInstance().refreshOpenNavigatorViewsForRoom(this.room);
 
         GamePlayer gamePlayer = player.getRoomUser().getGamePlayer();
 
@@ -348,6 +350,7 @@ public class RoomEntityManager {
 
         player.getMessenger().sendStatusUpdate();
         RoomDao.saveVisitors(this.room);
+        NavigatorManager.getInstance().refreshOpenNavigatorViewsForRoom(this.room);
 
         // If we left room while in a game, leave the game
         GamePlayer gamePlayer = player.getRoomUser().getGamePlayer();

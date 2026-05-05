@@ -49,6 +49,8 @@ public class Player extends Entity {
     private boolean loggedIn;
     private boolean disconnected;
     private boolean pingOK;
+    private int lastNavigatorCategoryId = -1;
+    private boolean lastNavigatorHideFull;
 
     public Player(NettyPlayerNetwork nettyPlayerNetwork) {
         this.network = nettyPlayerNetwork;
@@ -258,6 +260,19 @@ public class Player extends Entity {
      */
     public boolean isPingOK() {
         return pingOK;
+    }
+
+    public int getLastNavigatorCategoryId() {
+        return lastNavigatorCategoryId;
+    }
+
+    public boolean getLastNavigatorHideFull() {
+        return lastNavigatorHideFull;
+    }
+
+    public void setLastNavigatorView(int categoryId, boolean hideFull) {
+        this.lastNavigatorCategoryId = categoryId;
+        this.lastNavigatorHideFull = hideFull;
     }
 
     /**

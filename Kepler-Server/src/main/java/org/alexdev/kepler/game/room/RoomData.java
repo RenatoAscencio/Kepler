@@ -250,9 +250,11 @@ public class RoomData {
     }
 
     public int getVisitorsNow() {
-        //return this.visitorsNow;
-        int visitors = this.visitorsNow;
-        return visitors;
+        if (this.room != null && this.room.isActive()) {
+            return this.room.getEntityManager().getPlayers().size();
+        }
+
+        return this.visitorsNow;
     }
 
     public void setVisitorsNow(int visitorsNow) {

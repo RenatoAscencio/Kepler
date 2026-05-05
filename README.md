@@ -200,6 +200,15 @@ If avatar or mission changes fail, check the Kepler logs for:
 Those messages indicate whether the client sent the profile packet and whether
 the server accepted the profile/account authentication path.
 
+### Navigator visitor counts
+
+Room visitor counts must be based on the live in-memory room entity list while a
+room is active, not only on the `rooms.visitors_now` database snapshot. The
+server remembers each player's last opened navigator category and resends that
+same `NAVNODEINFO` payload after a player enters or leaves a room in that
+category. This keeps open navigator windows from showing stale values such as
+`Salon de Bienvenida (0/40)` while the player is already inside the room.
+
 ## License
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
