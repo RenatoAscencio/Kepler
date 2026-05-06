@@ -11,6 +11,7 @@ public enum RconHeader {
     REFRESH_CATALOGUE_FRONTPAGE("refresh_catalogue_frontpage"),
     REFRESH_TRADE("refresh_trade"),
     REFRESH_ADS("refresh_ads"),
+    REFRESH_GAME_SETTINGS("refresh_game_settings"),
     MUTE_USER("mute_user"),
     UNMUTE_USER("unmute_user"),
     ROOM_MUTE("room_mute"),

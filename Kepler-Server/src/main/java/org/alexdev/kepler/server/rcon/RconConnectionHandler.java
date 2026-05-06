@@ -19,6 +19,8 @@ import org.alexdev.kepler.dao.mysql.BadgeDao;
 import org.alexdev.kepler.game.moderation.WordfilterManager;
 import org.alexdev.kepler.util.DateUtil;
 import org.alexdev.kepler.server.rcon.messages.RconMessage;
+import org.alexdev.kepler.util.config.GameConfiguration;
+import org.alexdev.kepler.util.config.writer.GameConfigWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,6 +167,11 @@ public class RconConnectionHandler extends ChannelInboundHandlerAdapter {
 
                 case REFRESH_ADS:
                     log.info("[RCON] Advertisements refreshed");
+                    break;
+
+                case REFRESH_GAME_SETTINGS:
+                    GameConfiguration.reset(new GameConfigWriter());
+                    log.info("[RCON] Game settings refreshed");
                     break;
 
                 case MUTE_USER:
