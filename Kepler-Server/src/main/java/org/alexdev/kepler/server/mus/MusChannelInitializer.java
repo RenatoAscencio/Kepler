@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import org.alexdev.kepler.server.mus.codec.MusNetworkDecoder;
 import org.alexdev.kepler.server.mus.codec.MusNetworkEncoder;
+import org.alexdev.kepler.server.mus.diag.MusBytesDumpHandler;
 import org.alexdev.kepler.server.netty.codec.websocket.ProtocolDetector;
 import org.alexdev.kepler.server.netty.codec.websocket.WebSocketBinaryFrameCodec;
 import org.alexdev.kepler.server.netty.codec.websocket.WebSocketHandshakeCompleteHandler;
@@ -27,6 +28,12 @@ public class MusChannelInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline pipeline = socketChannel.pipeline();
+        // Diagnostic byte-dump handler at the head of the pipeline. Passthrough;
+        // forwards every byte to the protocol detector unchanged. Caps output
+        // at 8 chunks × 256 bytes per connection so it can't fill the disk
+        // on production traffic. Will be removed once the camera path is
+        // confirmed working.
+        pipeline.addLast("musBytesDump", new MusBytesDumpHandler());
         pipeline.addLast("protocolDetector", new ProtocolDetector(
                 this::configureWebSocket,
                 this::configureNative
