@@ -15,4 +15,7 @@ game.properties
 icarus.properties
 locale.ini
 log4j.properties
+# The reload4j logging config under src/main/resources is part of the build,
+# not a secret — un-ignore it explicitly.
+!src/main/resources/log4j.properties
 error.log

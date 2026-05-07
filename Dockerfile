@@ -39,7 +39,13 @@ FROM alpine:3.23
 
 RUN apk add --no-cache openjdk21-jre-headless && \
     addgroup -S kepler && adduser -S kepler -G kepler && \
-    mkdir /kepler && chown kepler:kepler /kepler
+    mkdir -p /kepler /var/log/kepler && \
+    chown kepler:kepler /kepler /var/log/kepler
+
+# Persistent log directory consumed by log4j.properties via -Dkepler.log.dir.
+# Bind-mount /opt/kepler-logs:/var/log/kepler in the swarm service so logs
+# survive container replacement and are reachable from the host.
+VOLUME ["/var/log/kepler"]
 
 WORKDIR /kepler
 
