@@ -73,7 +73,12 @@ public final class SentryBootstrap {
 
         Sentry.init(options);
         Sentry.configureScope(scope -> {
-            scope.setTag("component", "kepler-server");
+            // The single "habbop" Sentry project receives events from all
+            // three HabboP runtimes (game server, web CMS, launcher); the
+            // component/runtime tags let the UI filter or alert per surface.
+            scope.setTag("component", "server");
+            scope.setTag("runtime", "java");
+            scope.setTag("app", "habbop");
             if (serverVersion != null) {
                 scope.setTag("server_version", serverVersion);
             }
