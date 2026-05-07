@@ -2374,7 +2374,7 @@ CREATE TABLE IF NOT EXISTS `items_photos` (
   `photo_id` int(11) NOT NULL,
   `photo_user_id` bigint(11) NOT NULL,
   `timestamp` bigint(11) NOT NULL,
-  `photo_data` blob NOT NULL,
+  `photo_data` longblob NOT NULL,
   `photo_checksum` int(11) NOT NULL,
   PRIMARY KEY (`photo_id`),
   UNIQUE KEY `photo_id` (`photo_id`)

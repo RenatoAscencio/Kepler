@@ -7,7 +7,7 @@ import org.alexdev.kepler.server.mus.streams.MusTypes;
 public class MusUtil {
     private static final int MAX_STRING_LENGTH = 64 * 1024;
     private static final int MAX_PROP_LIST_LENGTH = 128;
-    private static final int MAX_PROP_DATA_LENGTH = 1024 * 1024;
+    private static final int MAX_PROP_DATA_LENGTH = 32 * 1024 * 1024;
 
     public static String readEvenPaddedString(ByteBuf in) {
         // String length

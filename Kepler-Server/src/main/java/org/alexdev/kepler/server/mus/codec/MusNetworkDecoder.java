@@ -12,7 +12,7 @@ import java.util.List;
 
 public class MusNetworkDecoder extends ByteArrayDecoder {
     private static final int HEADER_LENGTH = 6;
-    private static final int MAX_MESSAGE_SIZE = 1024 * 1024;
+    private static final int MAX_MESSAGE_SIZE = 32 * 1024 * 1024;
     private static final int MAX_RECEIVERS = 256;
 
     @Override

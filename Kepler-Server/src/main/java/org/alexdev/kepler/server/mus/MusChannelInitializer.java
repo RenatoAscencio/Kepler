@@ -14,7 +14,9 @@ import org.alexdev.kepler.server.netty.codec.websocket.WebSocketBinaryFrameCodec
 import org.alexdev.kepler.server.netty.codec.websocket.WebSocketHandshakeCompleteHandler;
 
 public class MusChannelInitializer extends ChannelInitializer<SocketChannel> {
-    private static final int MAX_MUS_FRAME_SIZE = 1024 * 1024 + 6;
+    private static final int MUS_HEADER_LENGTH = 6;
+    private static final int MAX_MUS_MESSAGE_SIZE = 32 * 1024 * 1024;
+    private static final int MAX_MUS_FRAME_SIZE = MAX_MUS_MESSAGE_SIZE + MUS_HEADER_LENGTH;
 
     private final MusServer musServer;
 
