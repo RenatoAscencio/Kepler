@@ -2,9 +2,9 @@ package org.alexdev.kepler.server.mus;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
@@ -21,7 +21,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MusServer {
     final private static int BACK_LOG = 20;
-    final private static int BUFFER_SIZE = 8192;
+    // Adaptive receive buffer bounds. The default 1 KB initial was clearly
+    // sized for tiny game messages; camera BINDATA frames can run up to 32 MB
+    // (see MusChannelInitializer). Boost the read window so multi-MB photo
+    // uploads don't get split into thousands of 8 KB reads.
+    private static final int RECV_BUFFER_MIN = 64;
+    private static final int RECV_BUFFER_INITIAL = 64 * 1024;
+    private static final int RECV_BUFFER_MAX = 1024 * 1024;
     final private static Logger log = LoggerFactory.getLogger(MusServer.class);
 
     private final String ip;
@@ -50,14 +56,18 @@ public class MusServer {
         this.bossGroup = (Epoll.isAvailable()) ? new EpollEventLoopGroup(1) : new NioEventLoopGroup(1);
         this.workerGroup = (Epoll.isAvailable()) ? new EpollEventLoopGroup(workerThreads) : new NioEventLoopGroup(workerThreads);
 
+        // SO_RCVBUF is intentionally unset so the kernel can auto-tune the
+        // socket buffer for large camera uploads. Setting it explicitly to a
+        // small value (the previous 8 KB) caps the in-flight TCP window and
+        // turns multi-MB BINDATA into hundreds of round trips.
         this.bootstrap.group(bossGroup, workerGroup)
                 .channel((Epoll.isAvailable()) ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                 .childHandler(new MusChannelInitializer(this))
                 .option(ChannelOption.SO_BACKLOG, BACK_LOG)
                 .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childOption(ChannelOption.SO_RCVBUF, BUFFER_SIZE)
-                .childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(BUFFER_SIZE))
+                .childOption(ChannelOption.RCVBUF_ALLOCATOR,
+                        new AdaptiveRecvByteBufAllocator(RECV_BUFFER_MIN, RECV_BUFFER_INITIAL, RECV_BUFFER_MAX))
                 .childOption(ChannelOption.ALLOCATOR, new PooledByteBufAllocator(true));
     }
 
