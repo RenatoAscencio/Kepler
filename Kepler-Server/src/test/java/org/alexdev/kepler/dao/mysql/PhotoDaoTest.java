@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Drives PhotoDao against an H2 in-memory database in MariaDB compatibility
@@ -103,28 +104,13 @@ class PhotoDaoTest {
         byte[] payload = bytes(64);
         PhotoDao.addPhoto(conn, 7, 1, 0L, payload, 0);
 
-        assertThat(catchSqlException(() ->
-                PhotoDao.addPhoto(conn, 7, 1, 0L, payload, 0)))
-                .isNotNull();
+        assertThatThrownBy(() -> PhotoDao.addPhoto(conn, 7, 1, 0L, payload, 0))
+                .isInstanceOf(SQLException.class);
     }
 
     private static byte[] bytes(int size) {
         byte[] result = new byte[size];
         new Random(0xC0FFEE).nextBytes(result);
         return result;
-    }
-
-    private static SQLException catchSqlException(SqlAction action) {
-        try {
-            action.run();
-            return null;
-        } catch (SQLException e) {
-            return e;
-        }
-    }
-
-    @FunctionalInterface
-    private interface SqlAction {
-        void run() throws SQLException;
     }
 }
