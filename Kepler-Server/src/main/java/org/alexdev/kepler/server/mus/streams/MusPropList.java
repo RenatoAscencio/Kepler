@@ -2,6 +2,8 @@ package org.alexdev.kepler.server.mus.streams;
 
 import org.alexdev.kepler.util.BitUtil;
 
+import java.nio.charset.StandardCharsets;
+
 public class MusPropList {
     private String[] symbols;
     private short[] dataTypes;
@@ -34,7 +36,7 @@ public class MusPropList {
     }
 
     public void setPropAsString(String symbol, String str) {
-        byte[] data = str.getBytes();
+        byte[] data = str.getBytes(StandardCharsets.UTF_8);
         this.setPropAsBytes(symbol, MusTypes.String, data);
     }
 
@@ -73,7 +75,7 @@ public class MusPropList {
 
     public String getPropAsString(String symbol) {
         byte[] bytes = this.getPropAsBytes(symbol);
-        return new String(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public String getSymbolAt(int slot) {
