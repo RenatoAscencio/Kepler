@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
 
 public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage> {
     final private static AttributeKey<MusClient> MUS_CLIENT_KEY = AttributeKey.valueOf("MusClient");
@@ -152,41 +154,66 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
             if ("PHOTOTXT".equals(subject)) {
                 String content = message.getContentString();
 
-                if (client.getUserId() > 0 && content != null && content.length() > 1) {
-                    client.setPhotoText(StringUtil.filterInput(content.substring(1), true));
-                }
-            }
-
-            if ("BINDATA".equals(subject)) {
-                Player player = PlayerManager.getInstance().getPlayerById(client.getUserId());
-
-                if (player == null) {
+                if (client.getUserId() < 1) {
+                    log.debug("[MUS] PHOTOTXT ignored: client not yet authenticated");
                     return;
                 }
 
+                if (content == null || content.length() <= 1) {
+                    log.debug("[MUS] PHOTOTXT ignored: payload too short for user {}", client.getUserId());
+                    return;
+                }
+
+                client.setPhotoText(StringUtil.filterInput(content.substring(1), true));
+            }
+
+            if ("BINDATA".equals(subject)) {
                 if (client.getUserId() < 1) {
+                    log.debug("[MUS] BINDATA dropped: client not yet authenticated");
+                    return;
+                }
+
+                Player player = PlayerManager.getInstance().getPlayerById(client.getUserId());
+
+                if (player == null) {
+                    log.debug("[MUS] BINDATA dropped: no player session for user {}", client.getUserId());
                     return;
                 }
 
                 if (player.getRoomUser().getRoom() == null) {
+                    log.debug("[MUS] BINDATA dropped: user {} is not currently in a room", client.getUserId());
                     return;
                 }
-
-                long timeSeconds = DateUtil.getCurrentTimeSeconds();
 
                 if (message.getContentPropList() == null) {
+                    log.warn("[MUS] BINDATA dropped: missing PropList payload from user {}", client.getUserId());
                     return;
                 }
 
-                String time = message.getContentPropList().getPropAsString("time");
-                Integer cs = message.getContentPropList().getPropAsInt("cs");
-                byte[] image = message.getContentPropList().getPropAsBytes("image");
+                MusPropList props = message.getContentPropList();
+                byte[] image = props.getPropAsBytes("image");
+                byte[] csBytes = props.getPropAsBytes("cs");
                 String photoText = client.getPhotoText();
                 var photoDefinition = ItemManager.getInstance().getDefinitionBySprite("photo");
 
-                if (photoDefinition == null || image == null || cs == null) {
+                if (photoDefinition == null) {
+                    log.error("[MUS] BINDATA dropped: catalogue is missing the \"photo\" sprite definition; camera will not work for any user until this is restored");
                     return;
                 }
+
+                if (image == null || image.length == 0) {
+                    log.warn("[MUS] BINDATA dropped: empty image payload from user {}", client.getUserId());
+                    return;
+                }
+
+                if (csBytes.length == 0) {
+                    log.warn("[MUS] BINDATA dropped: missing checksum from user {}", client.getUserId());
+                    return;
+                }
+
+                int cs = props.getPropAsInt("cs");
+
+                long timeSeconds = DateUtil.getCurrentTimeSeconds();
 
                 Item photo = new Item();
                 photo.setOwnerId(client.getUserId());
@@ -194,7 +221,14 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
                 photo.setCustomData(DateUtil.getDateAsString(timeSeconds) + "\r" + photoText);
                 ItemDao.newItem(photo);
 
-                PhotoDao.addPhoto(photo.getId(), client.getUserId(), DateUtil.getCurrentTimeSeconds(), image, cs);
+                try {
+                    PhotoDao.addPhoto(photo.getId(), client.getUserId(), timeSeconds, image, cs);
+                } catch (SQLException sqlEx) {
+                    log.error("[MUS] BINDATA failed to persist photo {} for user {} (image {} bytes); rolling back item",
+                            photo.getId(), client.getUserId(), image.length, sqlEx);
+                    ItemDao.deleteItems(List.of(photo.getId()));
+                    return;
+                }
 
                 reply = new MusMessage();
                 reply.setSubject("BINDATA_SAVED");
@@ -207,28 +241,44 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
 
                 CurrencyDao.decreaseFilm(player.getDetails(), 1);
                 player.send(new FILM(player.getDetails()));
+
+                log.info("[MUS] BINDATA saved photo {} for user {} ({} bytes)",
+                        photo.getId(), client.getUserId(), image.length);
             }
 
             if ("GETBINDATA".equals(subject)) {
+                if (client.getUserId() < 1) {
+                    log.debug("[MUS] GETBINDATA ignored: client not yet authenticated");
+                    return;
+                }
+
                 String content = message.getContentString();
 
                 if (content == null || content.isBlank()) {
+                    log.debug("[MUS] GETBINDATA ignored: empty request from user {}", client.getUserId());
                     return;
                 }
 
                 int photoID = parseInteger(content.split(" ")[0]);
 
                 if (photoID < 1) {
+                    log.debug("[MUS] GETBINDATA ignored: invalid photo id \"{}\" from user {}",
+                            content, client.getUserId());
                     return;
                 }
 
-                Photo photo = PhotoDao.getPhoto(photoID);
+                Photo photo;
+
+                try {
+                    photo = PhotoDao.getPhoto(photoID);
+                } catch (SQLException sqlEx) {
+                    log.error("[MUS] GETBINDATA failed to load photo {} for user {}",
+                            photoID, client.getUserId(), sqlEx);
+                    return;
+                }
 
                 if (photo == null) {
-                    return;
-                }
-
-                if (client.getUserId() < 1) {
+                    log.debug("[MUS] GETBINDATA: photo {} not found for user {}", photoID, client.getUserId());
                     return;
                 }
 
