@@ -4,13 +4,15 @@ import io.netty.buffer.ByteBuf;
 import org.alexdev.kepler.server.mus.streams.MusPropList;
 import org.alexdev.kepler.server.mus.streams.MusTypes;
 
+import java.nio.charset.StandardCharsets;
+
 public class MusUtil {
     private static final int MAX_STRING_LENGTH = 64 * 1024;
     private static final int MAX_PROP_LIST_LENGTH = 128;
     private static final int MAX_PROP_DATA_LENGTH = 32 * 1024 * 1024;
 
     public static String readEvenPaddedString(ByteBuf in) {
-        // String length
+        // String length (in bytes, not chars)
         int length = in.readInt();
 
         if (length < 0 || length > MAX_STRING_LENGTH) {
@@ -21,34 +23,34 @@ public class MusUtil {
             return "";
         }
 
-        int padding = (length % 2) != 0 ? 1 : 0;
+        int padding = (length & 1) != 0 ? 1 : 0;
 
         if (in.readableBytes() < length + padding) {
             throw new IllegalArgumentException("MUS string length exceeds readable bytes: " + length);
         }
 
-        // Actual string bytes
         byte[] bytes = new byte[length];
         in.readBytes(bytes);
 
-        // Advance one byte if uneven
         if (padding == 1) {
             in.readByte();
         }
 
-        // Return the string
-        return new String(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     public static void writeEvenPaddedString(ByteBuf out, String str) {
-        // String length
-        out.writeInt(str.length());
+        // Encode first; length prefix and padding must reflect the BYTE count,
+        // not the Java char count. Multi-byte UTF-8 chars (accented Spanish
+        // letters in photo text, room names, etc.) would otherwise put the
+        // length prefix and the actual byte run out of sync, corrupting every
+        // subsequent field in the same MUS frame.
+        byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
 
-        // Actual string bytes
-        out.writeBytes(str.getBytes());
+        out.writeInt(bytes.length);
+        out.writeBytes(bytes);
 
-        // Add a null byte if uneven
-        if ((str.length() % 2) != 0) {
+        if ((bytes.length & 1) != 0) {
             out.writeByte(0);
         }
     }
