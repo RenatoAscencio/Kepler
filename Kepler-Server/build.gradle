@@ -57,6 +57,12 @@ dependencies {
 
     implementation 'com.github.bhlangonijr:chesslib:1.1.1'
 
+    // Error tracking. Modern Sentry SDK; log4j 1.x integration is deprecated
+    // upstream so we capture exceptions programmatically (uncaught handler +
+    // strategic Sentry.captureException at known failure sites) instead of
+    // wiring an appender.
+    implementation 'io.sentry:sentry:8.16.0'
+
     // Test dependencies
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.4'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.11.4'

@@ -31,6 +31,7 @@ import org.alexdev.kepler.util.DateUtil;
 import org.alexdev.kepler.util.config.GameConfiguration;
 import org.alexdev.kepler.util.config.LoggingConfiguration;
 import org.alexdev.kepler.util.config.ServerConfiguration;
+import org.alexdev.kepler.util.observability.SentryBootstrap;
 import org.alexdev.kepler.util.config.writer.DefaultConfigWriter;
 import org.alexdev.kepler.util.config.writer.GameConfigWriter;
 import org.slf4j.Logger;
@@ -73,6 +74,10 @@ public class Kepler {
 
             log = LoggerFactory.getLogger(Kepler.class);
             configureResourceLeakDetector();
+
+            // Wire Sentry as early as possible so any startup-phase exception
+            // gets captured. No-op when SENTRY_DSN is unset.
+            SentryBootstrap.init(SERVER_VERSION);
 
             System.out.println("  _  __          _           \n" +
                     " | |/ /___ _ __ | | ___ _ __ \n" +

@@ -81,12 +81,15 @@ public class Storage {
     }
 
     /**
-     * Logger handler for the MySQL processing.
+     * Logger handler for the MySQL processing. Mirrors the exception into
+     * Sentry (when configured) so DB-layer failures show up in the error
+     * tracker alongside the application log.
      *
      * @param ex the exception to log
      */
     public static void logError(Exception ex) {
         Log.getErrorLogger().error("Error when executing MySQL query: ", ex);
+        io.sentry.Sentry.captureException(ex);
     }
 
     /**

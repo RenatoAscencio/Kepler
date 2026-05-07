@@ -294,6 +294,14 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
 
         } catch (Exception ex) {
             Log.getErrorLogger().error("Exception occurred when handling MUS message: ", ex);
+            io.sentry.Sentry.withScope(scope -> {
+                scope.setTag("flow", "mus_handler");
+                if (subject != null) {
+                    scope.setTag("mus_subject", subject);
+                }
+                scope.setTag("user_id", String.valueOf(client.getUserId()));
+                io.sentry.Sentry.captureException(ex);
+            });
         }
     }
 
@@ -308,6 +316,10 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
             log.warn("[MUS] Closing malformed connection from {}: {}", ctx.channel().remoteAddress(), cause.getMessage());
         } else if (cause instanceof Exception) {
             Log.getErrorLogger().error("[MUS] Netty error occurred: ", cause);
+            io.sentry.Sentry.withScope(scope -> {
+                scope.setTag("flow", "mus_netty");
+                io.sentry.Sentry.captureException(cause);
+            });
         }
 
         ctx.close();
