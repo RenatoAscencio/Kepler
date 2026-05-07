@@ -39,6 +39,8 @@ public class ProtocolDetector extends ByteToMessageDecoder {
             log.info("WebSocket connection detected from {}", ctx.channel().remoteAddress());
             webSocketConfigurer.accept(pipeline);
         } else {
+            log.info("Native TCP connection detected from {} (first4 bytes 0x{})",
+                    ctx.channel().remoteAddress(), Integer.toHexString(magic));
             nativeConfigurer.accept(pipeline);
         }
 

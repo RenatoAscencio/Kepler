@@ -62,14 +62,14 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
         MusClient client = new MusClient(ctx.channel());
         ctx.channel().attr(MUS_CLIENT_KEY).set(client);
 
-        //log.info("[MUS] Connection from {}", ctx.channel().remoteAddress().toString().replace("/", "").split(":")[0]);
+        log.info("[MUS] Connection registered from {}", ctx.channel().remoteAddress());
     }
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
         this.server.getChannels().remove(ctx.channel());
 
-        //log.info("[MUS] Disconnection from {}", ctx.channel().remoteAddress().toString().replace("/", "").split(":")[0]);
+        log.info("[MUS] Connection closed from {}", ctx.channel().remoteAddress());
     }
 
     @Override
