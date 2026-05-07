@@ -35,8 +35,11 @@ public class MusChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private void configureWebSocket(ChannelPipeline pipeline) {
         pipeline.addLast("httpCodec", new HttpServerCodec());
-        pipeline.addLast("httpAggregator", new HttpObjectAggregator(65536));
-        pipeline.addLast("wsProtocol", new WebSocketServerProtocolHandler("/", null, true, 65536));
+        // Match the native MUS frame ceiling so WebSocket-based clients (browser
+        // builds, headless tests) can upload v14 camera BINDATA without hitting
+        // the previous 64 KB cap.
+        pipeline.addLast("httpAggregator", new HttpObjectAggregator(MAX_MUS_FRAME_SIZE));
+        pipeline.addLast("wsProtocol", new WebSocketServerProtocolHandler("/", null, true, MAX_MUS_FRAME_SIZE));
         pipeline.addLast("wsHandshakeComplete", new WebSocketHandshakeCompleteHandler(p -> {
             p.addLast("wsCodec", new WebSocketBinaryFrameCodec());
             configureNative(p);
