@@ -532,12 +532,9 @@ public class MessageHandler {
             // For catalog page opens, attach the page name (e.g. "Legacy Custom")
             // so a crash points at the offending page directly.
             if (hid == 100 || handlerName.equals("GCAP")) {
-                String body = message.getMessageBody();
-                if (body != null) {
-                    String[] parts = body.split("/");
-                    if (parts.length > 1) {
-                        crumb.setData("catalog_page", parts[1]);
-                    }
+                String pageName = extractCatalogPageName(message.getMessageBody());
+                if (pageName != null) {
+                    crumb.setData("catalog_page", pageName);
                 }
             }
             io.sentry.Sentry.addBreadcrumb(crumb);
@@ -546,6 +543,32 @@ public class MessageHandler {
         }
 
         invoke(player, message.getHeaderId(), message);
+    }
+
+    /**
+     * Extracts the catalog page name from a GCAP request body. The Habbo v14
+     * GCAP body is "<mode>/<pageName>" or just "<pageName>". Returns null when
+     * the body is null/blank or has no page-name segment.
+     *
+     * Pulled out of {@link #handleRequest} so the parse can be unit-tested
+     * without spinning up a Sentry mock or a Netty request — the breadcrumb
+     * tag is the load-bearing diagnostic for "user opened X then crashed".
+     *
+     * Package-private for tests.
+     */
+    static String extractCatalogPageName(String body) {
+        if (body == null) {
+            return null;
+        }
+        String[] parts = body.split("/");
+        if (parts.length <= 1) {
+            return null;
+        }
+        String pageName = parts[1];
+        if (pageName.isEmpty()) {
+            return null;
+        }
+        return pageName;
     }
 
     /**
