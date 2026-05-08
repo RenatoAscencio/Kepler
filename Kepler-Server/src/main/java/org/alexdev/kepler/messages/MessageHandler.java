@@ -508,6 +508,43 @@ public class MessageHandler {
             }
         }
 
+        // Sentry breadcrumb: every game-handler invocation. When an exception
+        // is captured later by invoke(), Sentry attaches the last ~100
+        // breadcrumbs automatically — giving the user-visible "what was the
+        // client doing right before the crash" context. Heavy-asset
+        // operations (catalog open, room enter) often correlate with v14
+        // client crashes from incompatible CCT casts; these breadcrumbs
+        // make those crashes diagnosable from Sentry alone.
+        try {
+            int hid = message.getHeaderId();
+            MessageEvent event = this.messages.get(hid);
+            String handlerName = event != null ? event.getClass().getSimpleName() : "Unknown";
+            io.sentry.Breadcrumb crumb = new io.sentry.Breadcrumb();
+            crumb.setCategory("game.message");
+            crumb.setLevel(io.sentry.SentryLevel.INFO);
+            crumb.setMessage(handlerName + " (" + hid + ")");
+            if (player != null && player.isLoggedIn()) {
+                crumb.setData("user_id", String.valueOf(player.getDetails().getId()));
+                if (player.getRoomUser() != null && player.getRoomUser().getRoom() != null) {
+                    crumb.setData("room_id", String.valueOf(player.getRoomUser().getRoom().getId()));
+                }
+            }
+            // For catalog page opens, attach the page name (e.g. "Legacy Custom")
+            // so a crash points at the offending page directly.
+            if (hid == 100 || handlerName.equals("GCAP")) {
+                String body = message.getMessageBody();
+                if (body != null) {
+                    String[] parts = body.split("/");
+                    if (parts.length > 1) {
+                        crumb.setData("catalog_page", parts[1]);
+                    }
+                }
+            }
+            io.sentry.Sentry.addBreadcrumb(crumb);
+        } catch (Exception breadcrumbEx) {
+            // Never let breadcrumb instrumentation break the request path.
+        }
+
         invoke(player, message.getHeaderId(), message);
     }
 
