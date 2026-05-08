@@ -529,8 +529,26 @@ public class MessageHandler {
                     name = player.getDetails().getName();
                 }
 
-
                 Log.getErrorLogger().error("Error occurred when handling (" + message.getHeaderId() + ") for user (" + name + "):", ex);
+
+                final String handlerClass = event.getClass().getSimpleName();
+                final String username = name;
+                final int headerId = messageId;
+                io.sentry.Sentry.withScope(scope -> {
+                    scope.setTag("flow", "game_handler");
+                    scope.setTag("handler", handlerClass);
+                    scope.setTag("header_id", String.valueOf(headerId));
+                    if (player != null && player.isLoggedIn()) {
+                        io.sentry.protocol.User sentryUser = new io.sentry.protocol.User();
+                        sentryUser.setId(String.valueOf(player.getDetails().getId()));
+                        sentryUser.setUsername(username);
+                        scope.setUser(sentryUser);
+                        if (player.getRoomUser() != null && player.getRoomUser().getRoom() != null) {
+                            scope.setTag("room_id", String.valueOf(player.getRoomUser().getRoom().getId()));
+                        }
+                    }
+                    io.sentry.Sentry.captureException(ex);
+                });
             }
         }
 
