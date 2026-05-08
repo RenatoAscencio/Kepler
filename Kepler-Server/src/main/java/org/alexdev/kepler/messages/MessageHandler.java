@@ -508,22 +508,6 @@ public class MessageHandler {
             }
         }
 
-        // Diagnostic: always log song/sound-machine handler invocations so we
-        // can trace Trax editor flows without enabling the spammy global
-        // packet log. Will be removed once Trax is confirmed working.
-        int hid = message.getHeaderId();
-        if (hid == 218 || hid == 219 || hid == 220 || hid == 221
-                || hid == 239 || hid == 240 || hid == 241 || hid == 242
-                || hid == 243 || hid == 245 || hid == 246 || hid == 248 || hid == 254) {
-            MessageEvent songEvent = this.messages.get(hid);
-            String name = songEvent != null ? songEvent.getClass().getSimpleName() : "Unknown";
-            String body = message.getMessageBody();
-            int bodyLen = body == null ? 0 : body.length();
-            player.getLogger().info("[SONG-DIAG] header={} handler={} bodyLen={} body={}",
-                    hid, name, bodyLen,
-                    bodyLen > 200 ? body.substring(0, 200) + "..." : body);
-        }
-
         invoke(player, message.getHeaderId(), message);
     }
 
