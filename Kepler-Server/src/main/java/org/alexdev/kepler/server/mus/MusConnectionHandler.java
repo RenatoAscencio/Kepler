@@ -51,8 +51,20 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
         }
     }
 
+    /**
+     * Initialise the {@link MusClient} attribute when this handler is added to
+     * the pipeline. The legacy {@code channelRegistered} hook runs only once,
+     * at original channel registration — and since the WebSocket-aware
+     * {@link ProtocolDetector} adds this handler late, after registration has
+     * already completed, the channelRegistered callback never fires for us
+     * and the client attribute would never be set, causing every subsequent
+     * inbound message to fail the {@code client == null} guard in
+     * {@link #channelRead0} and silently close the connection. This was the
+     * root cause of every camera (BINDATA) attempt being dropped after the
+     * WebSocket port-unification commit.
+     */
     @Override
-    public void channelRegistered(ChannelHandlerContext ctx) {
+    public void handlerAdded(ChannelHandlerContext ctx) {
         if (!this.server.getChannels().add(ctx.channel()) || Kepler.isShuttingdown()) {
             Log.getErrorLogger().error("Could not accept MUS connection from {}", ctx.channel().remoteAddress().toString().replace("/", "").split(":")[0]);
             ctx.close();
@@ -65,8 +77,14 @@ public class MusConnectionHandler extends SimpleChannelInboundHandler<MusMessage
         log.info("[MUS] Connection registered from {}", ctx.channel().remoteAddress());
     }
 
+    /**
+     * Symmetric to {@link #handlerAdded}: clean up server-side state when the
+     * handler is removed from the pipeline. We use this instead of
+     * {@code channelUnregistered} for consistency with the lifecycle the
+     * channel actually goes through under {@link ProtocolDetector}.
+     */
     @Override
-    public void channelUnregistered(ChannelHandlerContext ctx) {
+    public void handlerRemoved(ChannelHandlerContext ctx) {
         this.server.getChannels().remove(ctx.channel());
 
         log.info("[MUS] Connection closed from {}", ctx.channel().remoteAddress());
