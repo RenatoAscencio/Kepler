@@ -1,7 +1,6 @@
 package org.alexdev.kepler.util.observability;
 
 import io.sentry.Sentry;
-import io.sentry.SentryLevel;
 import io.sentry.SentryOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +95,6 @@ public final class SentryBootstrap {
             log.error("Uncaught exception on thread {}", thread.getName(), throwable);
         });
 
-        Sentry.captureMessage("Kepler started", SentryLevel.INFO);
         log.info("Sentry initialised (environment={}, release={}, sampleRate={})",
                 environment,
                 release == null ? "none" : release,
