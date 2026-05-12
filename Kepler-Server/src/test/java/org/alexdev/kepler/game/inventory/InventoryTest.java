@@ -18,11 +18,43 @@ public class InventoryTest {
         setField(item, "id", 66);
         setField(item, "customData", "C");
         setField(item, "definition", new ItemDefinition(
+            820,
+            "country_gate",
+            "Farm Gate",
+            "Livestock: Close gate behind you",
+            "solid,requires_rights_for_interaction,gate",
+            "default",
+            0,
+            2,
+            1,
+            "0,0,0",
+            "",
+            true,
+            true
+        ));
+
+        NettyResponse response = new NettyResponse((short) 140, Unpooled.buffer());
+        Inventory.serialise(response, item, 0);
+
+        String separator = Character.toString((char) 30);
+        String body = response.getBodyString();
+
+        assertThat(body).contains("SI" + separator + "66" + separator + "0" + separator + "S" + separator);
+        assertThat(body).contains("country_gate" + separator + "2" + separator + "1" + separator + separator + "0,0,0");
+        assertThat(body).doesNotContain(separator + "C" + separator);
+    }
+
+    @Test
+    void serialisesExecutiveGateNumericStateInHandStrip() throws ReflectiveOperationException {
+        Item item = new Item();
+        setField(item, "id", 66);
+        setField(item, "customData", "1");
+        setField(item, "definition", new ItemDefinition(
             738,
             "exe_gate",
             "Executive Gate",
             "Keeps the tax man away",
-            "solid,requires_rights_for_interaction,gate",
+            "solid,custom_data_numeric_state,requires_rights_for_interaction",
             "default",
             0,
             1,
@@ -39,9 +71,7 @@ public class InventoryTest {
         String separator = Character.toString((char) 30);
         String body = response.getBodyString();
 
-        assertThat(body).contains("SI" + separator + "66" + separator + "0" + separator + "S" + separator);
-        assertThat(body).contains("exe_gate" + separator + "1" + separator + "1" + separator + separator + "0,0,0");
-        assertThat(body).doesNotContain(separator + "C" + separator);
+        assertThat(body).contains("exe_gate" + separator + "1" + separator + "1" + separator + "1" + separator + "0,0,0");
     }
 
     private static void setField(Item item, String fieldName, Object value) throws ReflectiveOperationException {

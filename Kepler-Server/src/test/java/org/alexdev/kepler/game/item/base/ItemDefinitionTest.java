@@ -52,6 +52,29 @@ public class ItemDefinitionTest {
     }
 
     @Test
+    void normalisesBlankExecutiveGateNumericStateToFirstState() {
+        ItemDefinition executiveGate = new ItemDefinition(
+            738,
+            "exe_gate",
+            "Executive Gate",
+            "Keeps the tax man away",
+            "solid,custom_data_numeric_state,requires_rights_for_interaction",
+            "default",
+            0,
+            1,
+            1,
+            "0,0,0",
+            "",
+            true,
+            true
+        );
+
+        assertThat(executiveGate.normaliseCustomData(null)).isEqualTo("1");
+        assertThat(executiveGate.normaliseCustomData("")).isEqualTo("1");
+        assertThat(executiveGate.normaliseCustomData("2")).isEqualTo("2");
+    }
+
+    @Test
     void hidesGateStateFromInventoryCustomData() {
         ItemDefinition gate = new ItemDefinition(
             738,
