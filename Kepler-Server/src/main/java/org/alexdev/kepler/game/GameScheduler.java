@@ -1,6 +1,8 @@
 package org.alexdev.kepler.game;
 
 import org.alexdev.kepler.dao.mysql.CurrencyDao;
+import org.alexdev.kepler.dao.mysql.PlayerDao;
+import org.alexdev.kepler.dao.mysql.SettingsDao;
 import org.alexdev.kepler.game.catalogue.RareManager;
 import org.alexdev.kepler.game.events.EventsManager;
 import org.alexdev.kepler.game.item.Item;
@@ -137,12 +139,33 @@ public class GameScheduler implements Runnable {
                 ChatManager.getInstance().performChatSaving();
             }
 
+            // Keep CMS/HK online presence aligned with authenticated sockets.
+            if (tick % 60 == 0) {
+                this.syncOnlinePlayers();
+            }
+
             RareManager.getInstance().performRareManagerJob(this.tickRate);
         } catch (Exception ex) {
             Log.getErrorLogger().error("GameScheduler crashed: ", ex);
         }
 
         this.tickRate.incrementAndGet();
+    }
+
+    private void syncOnlinePlayers() {
+        List<Player> players = PlayerManager.getInstance().getPlayers();
+        SettingsDao.updateSetting("players.online", String.valueOf(players.size()));
+
+        if (players.isEmpty()) {
+            return;
+        }
+
+        List<PlayerDetails> details = new ArrayList<>();
+        for (Player player : players) {
+            details.add(player.getDetails());
+        }
+
+        PlayerDao.saveLastOnline(details);
     }
 
     /**

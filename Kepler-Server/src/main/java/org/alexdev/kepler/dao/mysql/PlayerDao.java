@@ -9,6 +9,7 @@ import org.alexdev.kepler.util.DateUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.util.Collection;
 
 public class PlayerDao {
     /**
@@ -410,6 +411,46 @@ public class PlayerDao {
         } finally {
             Storage.closeSilently(preparedStatement);
             Storage.closeSilently(sqlConnection);
+        }
+    }
+
+    /**
+     * Update last_online for all currently authenticated players in one batch.
+     *
+     * @param details the details of the users
+     */
+    public static void saveLastOnline(Collection<PlayerDetails> details) {
+        if (details == null || details.isEmpty()) {
+            return;
+        }
+
+        long currentTime = DateUtil.getCurrentTimeSeconds();
+        Connection sqlConnection = null;
+
+        try {
+            sqlConnection = Storage.getStorage().getConnection();
+            saveLastOnline(sqlConnection, details, currentTime);
+        } catch (Exception e) {
+            Storage.logError(e);
+        } finally {
+            Storage.closeSilently(sqlConnection);
+        }
+    }
+
+    static void saveLastOnline(Connection sqlConnection, Collection<PlayerDetails> details, long currentTime) throws SQLException {
+        if (sqlConnection == null) {
+            throw new SQLException("Could not update last_online because the database connection is unavailable");
+        }
+
+        try (PreparedStatement preparedStatement = sqlConnection.prepareStatement("UPDATE users SET last_online = ? WHERE id = ?")) {
+            for (PlayerDetails playerDetails : details) {
+                playerDetails.setLastOnline(currentTime);
+                preparedStatement.setLong(1, currentTime);
+                preparedStatement.setInt(2, playerDetails.getId());
+                preparedStatement.addBatch();
+            }
+
+            preparedStatement.executeBatch();
         }
     }
 
