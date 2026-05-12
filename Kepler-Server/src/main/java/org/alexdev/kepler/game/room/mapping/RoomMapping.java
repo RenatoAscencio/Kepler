@@ -162,6 +162,7 @@ public class RoomMapping {
         item.setRoomId(this.room.getId());
         item.setOwnerId(this.room.getData().getOwnerId());
         item.setRollingData(null);
+        item.setCustomData(item.getDefinition().normaliseCustomData(item.getCustomData()));
 
         if (item.hasBehaviour(ItemBehaviour.DICE)) {
             // For some reason the client expects the HC dice to have a default of 1 while the normal dice a default of 0 (off)

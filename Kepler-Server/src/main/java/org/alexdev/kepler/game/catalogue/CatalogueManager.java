@@ -117,6 +117,8 @@ public class CatalogueManager {
             }
         }
 
+        customData = def.normaliseCustomData(customData);
+
         Item item = new Item();
         item.setOwnerId(player.getDetails().getId());
         item.setDefinitionId(def.getId());

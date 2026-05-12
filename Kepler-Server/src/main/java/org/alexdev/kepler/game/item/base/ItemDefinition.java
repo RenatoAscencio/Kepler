@@ -102,6 +102,24 @@ public class ItemDefinition {
     }
 
     /**
+     * Normalise item custom data before it is persisted or serialised.
+     *
+     * @param customData the custom data to normalise
+     * @return the client-safe custom data
+     */
+    public String normaliseCustomData(String customData) {
+        if (customData == null) {
+            customData = "";
+        }
+
+        if (this.hasBehaviour(ItemBehaviour.GATE) && customData.isBlank()) {
+            return "C";
+        }
+
+        return customData;
+    }
+
+    /**
      * Add a behaviour to the list.
      *
      * @param behaviour the behaviour to add
@@ -260,4 +278,3 @@ public class ItemDefinition {
         isTradable = tradable;
     }
 }
-
