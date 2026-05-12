@@ -52,6 +52,29 @@ public class ItemDefinitionTest {
     }
 
     @Test
+    void hidesGateStateFromInventoryCustomData() {
+        ItemDefinition gate = new ItemDefinition(
+            738,
+            "exe_gate",
+            "Executive Gate",
+            "Keeps the tax man away",
+            "solid,requires_rights_for_interaction,gate",
+            "default",
+            0,
+            1,
+            1,
+            "0,0,0",
+            "",
+            true,
+            true
+        );
+
+        assertThat(gate.getInventoryCustomData(null)).isEqualTo("");
+        assertThat(gate.getInventoryCustomData("C")).isEqualTo("");
+        assertThat(gate.getInventoryCustomData("O")).isEqualTo("");
+    }
+
+    @Test
     void leavesBlankCustomDataForNonGateItems() {
         ItemDefinition desk = new ItemDefinition(
             735,
@@ -70,5 +93,6 @@ public class ItemDefinitionTest {
         );
 
         assertThat(desk.normaliseCustomData("")).isEqualTo("");
+        assertThat(desk.getInventoryCustomData("2")).isEqualTo("2");
     }
 }

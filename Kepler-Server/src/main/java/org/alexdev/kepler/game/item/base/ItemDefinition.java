@@ -102,10 +102,10 @@ public class ItemDefinition {
     }
 
     /**
-     * Normalise item custom data before it is persisted or serialised.
+     * Normalise item custom data before it is persisted or serialised in rooms.
      *
      * @param customData the custom data to normalise
-     * @return the client-safe custom data
+     * @return the client-safe room custom data
      */
     public String normaliseCustomData(String customData) {
         if (customData == null) {
@@ -114,6 +114,24 @@ public class ItemDefinition {
 
         if (this.hasBehaviour(ItemBehaviour.GATE) && customData.isBlank()) {
             return "C";
+        }
+
+        return customData;
+    }
+
+    /**
+     * Get custom data that is safe for the hand strip inventory packet.
+     *
+     * @param customData the persisted custom data
+     * @return the custom data to serialise in the inventory strip
+     */
+    public String getInventoryCustomData(String customData) {
+        if (customData == null) {
+            customData = "";
+        }
+
+        if (this.hasBehaviour(ItemBehaviour.GATE)) {
+            return "";
         }
 
         return customData;
