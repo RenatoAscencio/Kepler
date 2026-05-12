@@ -116,10 +116,6 @@ public class ItemDefinition {
             return "C";
         }
 
-        if (this.sprite.equals("exe_gate") && this.hasBehaviour(ItemBehaviour.CUSTOM_DATA_NUMERIC_STATE) && customData.isBlank()) {
-            return "1";
-        }
-
         return customData;
     }
 
