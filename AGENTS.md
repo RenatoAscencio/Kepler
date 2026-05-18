@@ -36,7 +36,7 @@ Read this before changing server behavior for HabboP production.
 
 Key points:
 
-- Production runs this repo as Docker image `kepler-server:dc4543c` in service `test_kepler-server` on `easy.convo.chat`.
+- Production runs this repo as Docker image `kepler-server:<sha>` in service `test_kepler-server` on `easy.convo.chat`. Query the live pinned SHA with `docker service inspect test_kepler-server --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}'`. Images are built locally on the VPS in `/opt/kepler/` and not pushed to a registry — if the daemon prunes them (e.g. after easypanel "Update Server"), the self-healing `kepler-rebuild-missing-images.service` systemd unit rebuilds them from `/opt/kepler/` after the next boot.
 - Upstream is `https://github.com/Quackster/Kepler`; origin is `https://github.com/RenatoAscencio/Kepler.git`.
 - Do not revert HabboP-specific server changes when pulling upstream. Compare carefully and keep local behavior.
 - Production services: `test_kepler-server`, `test_kepler-db`, `test_kepler-www`.
